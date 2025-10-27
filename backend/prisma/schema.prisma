@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// user_accounts
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  passwordHash  String
+  name          String
+  avatar        String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  ownedBoards   Board[]         @relation("BoardOwner")
+  collaborations BoardCollaborator[]
+  invitesSent   Invite[]        @relation("InviteSender")
+  invitesReceived Invite[]      @relation("InviteReceiver")
+
+  @@index([email])
+}
+
+// whiteboards
+model Board {
+  id          String      @id @default(uuid())
+  title       String
+  thumbnail   String?
+  elements    Json        @default("[]")
+  ownerId     String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  owner       User        @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  collaborators BoardCollaborator[]
+  invites     Invite[]
+
+  @@index([ownerId])
+  @@index([updatedAt])
+}
+
+// board collaborations with permissions and info
+model BoardCollaborator {
+  id        String      @id @default(uuid())
+  boardId   String
+  userId    String
+  role      Role        @default(EDITOR)
+  addedAt   DateTime    @default(now())
+
+  board     Board       @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([boardId, userId])
+  @@index([userId])
+  @@index([boardId])
+}
+
+// collab invites
+model Invite {
+  id            String        @id @default(uuid())
+  boardId       String
+  senderId      String
+  receiverEmail String
+  receiverId    String?
+  role          Role          @default(EDITOR)
+  status        InviteStatus  @default(PENDING)
+  createdAt     DateTime      @default(now())
+
+  board         Board         @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  sender        User          @relation("InviteSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver      User?         @relation("InviteReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@index([receiverEmail])
+  @@index([boardId])
+  @@index([receiverId])
+}
+
+enum Role {
+  VIEWER
+  EDITOR
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
