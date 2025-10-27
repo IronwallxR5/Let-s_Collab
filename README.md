@@ -93,7 +93,7 @@
 
 ### Frontend
 - **Framework**: React 
-- **Canvas Library**: Fabric.js (for drawing and canvas manipulation)
+- **Canvas Library**: Excalidraw (for drawing and whiteboard functionality)
 - **State Management**: Zustand
 - **Styling**: Tailwind CSS / Styled Components
 - **Real-time**: Socket.IO Client
