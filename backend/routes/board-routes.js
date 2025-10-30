@@ -4,9 +4,9 @@ const { getAllBoards, getBoardById } = require("../controllers/boards");
 const router = express.Router();
 
 // getting all boards of a specific user
-router.get("/boards", getAllBoards);
+router.get("/", getAllBoards);
 
 // getting boards by a specific id
-router.get("/boards/:id", getBoardById);
+router.get("/:id", getBoardById);
 
 module.exports = router;
