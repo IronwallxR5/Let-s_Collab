@@ -92,10 +92,10 @@
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Framework**: React 
+- **Framework**: React with Vite
 - **Canvas Library**: Excalidraw (for drawing and whiteboard functionality)
 - **State Management**: Zustand
-- **Styling**: Tailwind CSS / Styled Components
+- **Styling**: CSS3
 - **Real-time**: Socket.IO Client
 
 ### Backend
@@ -106,9 +106,9 @@
 - **Authentication**: JWT (JSON Web Tokens)
 
 ### Infrastructure
-- **File Storage**: Firebase/ supabase
-- **Hosting**: Vercel (Frontend) + AWS/DigitalOcean (Backend)
-- **Database Hosting**: PlanetScale / Railway / AWS RDS
+- **File Storage**: Firebase / Supabase
+- **Hosting**: Vercel (Frontend) / Railway (Backend)
+- **Database Hosting**: PlanetScale / Railway / Supabase
 
 
 ## 🚀 Getting Started
