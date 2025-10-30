@@ -1,31 +1,20 @@
 import React from 'react';
 import './WhiteboardPage.css';
 
-const WhiteboardPage = () => {
+function WhiteboardPage() {
   return (
     <div className="whiteboard-page">
-      <div className="whiteboard-toolbar">
-        <div className="toolbar-left">
-          <button className="btn-back">← Back</button>
-          <h2 className="whiteboard-name">Untitled Whiteboard</h2>
-        </div>
-        <div className="toolbar-right">
-          <button className="btn-share">Share</button>
-          <div className="collaborators">
-            <div className="avatar">You</div>
-          </div>
-        </div>
+      <div className="toolbar">
+        <button>← Back</button>
+        <h2>My Whiteboard</h2>
+        <button>Share</button>
       </div>
 
       <div className="whiteboard-content">
-        <div className="placeholder">
-          <div className="placeholder-icon">🎨</div>
-          <p className="placeholder-title">Excalidraw Whiteboard Component</p>
-          <p className="placeholder-text">Will be integrated with real-time collaboration</p>
-        </div>
+        <p>Excalidraw will be integrated here</p>
       </div>
     </div>
   );
-};
+}
 
 export default WhiteboardPage;
