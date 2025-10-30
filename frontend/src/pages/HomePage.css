@@ -1,128 +1,27 @@
 .home-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #eff6ff 0%, #e0e7ff 100%);
 }
 
 .home-nav {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 2rem 0;
-  margin-bottom: 4rem;
+  padding: 20px 0;
 }
 
-.home-logo {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--primary-600);
-}
-
-.nav-buttons {
-  display: flex;
-  gap: 1rem;
-}
-
-.btn-login {
-  padding: 0.5rem 1.5rem;
-  color: var(--primary-600);
-  background: transparent;
-  font-weight: 500;
-  border-radius: 0.5rem;
-}
-
-.btn-login:hover {
-  color: var(--primary-800);
-}
-
-.btn-signup {
-  padding: 0.5rem 1.5rem;
-  color: white;
-  background: var(--primary-600);
-  font-weight: 500;
-  border-radius: 0.5rem;
-}
-
-.btn-signup:hover {
-  background: var(--primary-700);
-}
-
-.hero-section {
+.hero {
   text-align: center;
-  max-width: 56rem;
-  margin: 0 auto;
+  padding: 60px 20px;
 }
 
-.hero-title {
-  font-size: 3rem;
-  font-weight: 700;
-  color: var(--gray-900);
-  margin-bottom: 1.5rem;
-}
-
-.hero-title-highlight {
-  color: var(--primary-600);
-}
-
-.hero-description {
-  font-size: 1.25rem;
-  color: var(--gray-600);
-  margin-bottom: 2rem;
-}
-
-.btn-cta {
-  padding: 1rem 2rem;
-  background: var(--primary-600);
-  color: white;
-  font-size: 1.125rem;
-  border-radius: 0.5rem;
-  font-weight: 500;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.btn-cta:hover {
-  background: var(--primary-700);
-}
-
-.features-grid {
+.features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 2rem;
-  margin-top: 5rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+  margin-top: 50px;
 }
 
-.feature-card {
+.feature {
+  padding: 20px;
   background: white;
-  padding: 1.5rem;
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-
-.feature-icon {
-  font-size: 2.5rem;
-  margin-bottom: 1rem;
-}
-
-.feature-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-}
-
-.feature-description {
-  color: var(--gray-600);
-  margin-bottom: 0;
-}
-
-@media (max-width: 768px) {
-  .hero-title {
-    font-size: 2rem;
-  }
-  
-  .hero-description {
-    font-size: 1rem;
-  }
-  
-  .features-grid {
-    grid-template-columns: 1fr;
-  }
+  border-radius: 8px;
 }
