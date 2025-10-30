@@ -1,9 +1,12 @@
 const express = require("express");
-const { getAllBoards } = require("../controllers/boards");
+const { getAllBoards, getBoardById } = require("../controllers/boards");
 
 const router = express.Router();
 
-// GET /boards - Get all boards for a user
+// getting all boards of a specific user
 router.get("/boards", getAllBoards);
+
+// getting boards by a specific id
+router.get("/boards/:id", getBoardById);
 
 module.exports = router;
