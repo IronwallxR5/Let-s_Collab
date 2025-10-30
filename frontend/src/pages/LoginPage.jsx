@@ -1,45 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './LoginPage.css';
 
-const LoginPage = () => {
+function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // TODO: connect to backend API
+    console.log('Login:', email, password);
+  };
+
   return (
     <div className="login-page">
       <div className="login-card">
-        <h2 className="login-title">Welcome Back</h2>
-        <form className="login-form">
-          <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              Email Address
-            </label>
+        <h2>Welcome Back</h2>
+        <form onSubmit={handleSubmit}>
+          <div>
+            <label>Email</label>
             <input
               type="email"
-              id="email"
-              className="form-input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
+              required
             />
           </div>
-          <div className="form-group">
-            <label htmlFor="password" className="form-label">
-              Password
-            </label>
+          <div>
+            <label>Password</label>
             <input
               type="password"
-              id="password"
-              className="form-input"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••"
+              required
             />
           </div>
-          <button type="submit" className="btn-submit">
-            Sign In
-          </button>
+          <button type="submit">Sign In</button>
         </form>
-        <p className="signup-link">
-          Don't have an account?{' '}
-          <a href="/signup">Sign up</a>
+        <p>
+          Don't have an account? <a href="/signup">Sign up</a>
         </p>
       </div>
     </div>
   );
-};
+}
 
 export default LoginPage;
