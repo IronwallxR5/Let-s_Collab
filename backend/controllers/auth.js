@@ -86,6 +86,15 @@ async function login(req, res) {
     res.status(500).json({ error: "Server error" });
   }
 }
+
+async function logout(req, res) {
+  res
+    .clearCookie("token", getCookieOptions())
+    .json({ success: true, message: "Logged out successfully" });
+}
+
 module.exports = {
-  register
+  register,
+  login,
+  logout,
 };
