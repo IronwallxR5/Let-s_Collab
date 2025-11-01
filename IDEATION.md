@@ -84,9 +84,6 @@ In today's increasingly remote and hybrid work environment, teams, students, and
 - **Real-time**: WebSocket-based communication using Socket.IO
 - **Authentication**: JWT-based stateless authentication
 
-## 👥 Team Members and Roles
-
-> **Note**: Update this section with your actual team member names and their specific roles
 
 
 ### Collaborative Responsibilities
