@@ -2,21 +2,130 @@
   height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: white;
 }
 
 .toolbar {
   background: white;
-  padding: 15px 20px;
+  padding: 12px 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  z-index: 10;
+  flex-shrink: 0;
 }
 
-.whiteboard-content {
+.toolbar .back-btn {
+  padding: 8px 16px;
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+
+.toolbar .back-btn:hover {
+  background-color: #5a6268;
+  transform: translateX(-2px);
+}
+
+.title-section {
   flex: 1;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #f9f9f9;
+  margin: 0 20px;
 }
+
+.board-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.board-title:hover {
+  background-color: #f0f0f0;
+}
+
+.title-input {
+  font-size: 20px;
+  font-weight: 600;
+  padding: 8px 16px;
+  border: 2px solid #007bff;
+  border-radius: 6px;
+  outline: none;
+  text-align: center;
+  min-width: 300px;
+}
+
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.toolbar-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.export-btn {
+  background-color: #28a745;
+  color: white;
+}
+
+.export-btn:hover {
+  background-color: #218838;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.share-btn {
+  background-color: #007bff;
+  color: white;
+}
+
+.share-btn:hover {
+  background-color: #0056b3;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.whiteboard-canvas {
+  flex: 1;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Reset styles specifically for Excalidraw container */
+.whiteboard-canvas * {
+  box-sizing: border-box;
+}
+
+/* Ensure Excalidraw takes full space */
+.whiteboard-canvas .excalidraw,
+.whiteboard-canvas .excalidraw-wrapper {
+  height: 100% !important;
+  width: 100% !important;
+}
+
+

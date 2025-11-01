@@ -1,6 +1,10 @@
-* {
+/* Reset only for main layout elements, not all elements */
+body, html {
   margin: 0;
   padding: 0;
+}
+
+* {
   box-sizing: border-box;
 }
 
@@ -36,3 +40,4 @@ input {
   border: 1px solid #ddd;
   border-radius: 5px;
 }
+
