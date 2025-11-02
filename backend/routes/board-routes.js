@@ -3,6 +3,7 @@ const {
   getAllBoards,
   getBoardById,
   deleteBoard,
+  createBoard,
 } = require("../controllers/boards");
 
 const router = express.Router();
@@ -15,5 +16,6 @@ router.get("/:id", getBoardById);
 
 // delete board (owner only)
 router.delete("/:id", deleteBoard);
+router.post("/", createBoard);
 
 module.exports = router;

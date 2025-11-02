@@ -176,8 +176,37 @@ const deleteBoard = async (req, res) => {
   }
 };
 
+// creating a new board
+const createBoard = async (req, res) => {
+  try {
+    const { title, thumbnail, userId } = req.body;
+
+    if (!title || !userId) {
+      return res.status(400).json({ error: "Title and userId are required" });
+    }
+
+    const newBoard = await prisma.board.create({
+      data: {
+        title,
+        thumbnail,
+        owner: {
+          connect: { id: userId },
+        },
+      },
+    });
+
+    return res.status(201).json({ message: "Board created successfully", newBoard });
+  } catch (error) {
+    console.error("error:", error);
+    return res.status(500).json({
+      error: "Failed to create board",
+    });
+  }
+};
+
 module.exports = {
   getAllBoards,
   getBoardById,
   deleteBoard,
+  createBoard,
 };
