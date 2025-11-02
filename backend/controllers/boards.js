@@ -139,7 +139,45 @@ const getBoardById = async (req, res) => {
   }
 };
 
+// delete a specific board by id(only owner can delete a board)
+const deleteBoard = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const userId = req.query.userId;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const board = await prisma.board.findUnique({
+      where: { id: id },
+    });
+
+    if (!board) {
+      return res.status(404).json({ error: "Board not found" });
+    }
+
+    if (board.ownerId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "Only the board owner can delete this board" });
+    }
+
+    await prisma.board.delete({
+      where: { id: id },
+    });
+
+    return res.status(200).json({ message: "Board deleted successfully" });
+  } catch (error) {
+    console.error("error:", error);
+    return res.status(500).json({
+      error: "Failed to delete board",
+    });
+  }
+};
+
 module.exports = {
   getAllBoards,
   getBoardById,
+  deleteBoard,
 };

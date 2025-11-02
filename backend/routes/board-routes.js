@@ -1,5 +1,9 @@
 const express = require("express");
-const { getAllBoards, getBoardById } = require("../controllers/boards");
+const {
+  getAllBoards,
+  getBoardById,
+  deleteBoard,
+} = require("../controllers/boards");
 
 const router = express.Router();
 
@@ -8,5 +12,8 @@ router.get("/", getAllBoards);
 
 // getting boards by a specific id
 router.get("/:id", getBoardById);
+
+// delete board (owner only)
+router.delete("/:id", deleteBoard);
 
 module.exports = router;
