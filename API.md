@@ -3,9 +3,11 @@
 ## Authentication
 
 ### Register User
+
 **Endpoint:** `POST /auth/register`
 
 **Request Body:**
+
 ```json
 {
   "name": "string",
@@ -15,6 +17,7 @@
 ```
 
 **Success Response (201):**
+
 ```json
 {
   "success": true,
@@ -27,6 +30,7 @@
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "error": "User already exists with this email"
@@ -34,9 +38,11 @@
 ```
 
 ### Login User
+
 **Endpoint:** `POST /auth/login`
 
 **Request Body:**
+
 ```json
 {
   "email": "string",
@@ -45,6 +51,7 @@
 ```
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -58,6 +65,7 @@
 ```
 
 **Error Response (400):**
+
 ```json
 {
   "error": "Invalid credentials"
@@ -65,9 +73,11 @@
 ```
 
 ### Logout User
+
 **Endpoint:** `POST /auth/logout`
 
 **Success Response (200):**
+
 ```json
 {
   "success": true,
@@ -124,3 +134,100 @@ Get all boards for a user (owned + collaborated).
 GET /boards?userId=user-123
 ```
 
+### Create Board
+
+**Endpoint:** `POST /boards`
+
+**Request Body:**
+
+```json
+{
+  "title": "string",
+  "thumbnail": "string (optional)",
+  "userId": "string"
+}
+```
+
+**Success Response (201):**
+
+```json
+{
+  "message": "Board created successfully",
+  "newBoard": {
+    "id": "uuid",
+    "title": "string",
+    "thumbnail": "string or null",
+    "elements": {},
+    "ownerId": "string",
+    "createdAt": "timestamp",
+    "updatedAt": "timestamp"
+  }
+}
+```
+
+### Update Board
+
+**Endpoint:** `PATCH /boards/:id`
+
+**Query Parameters:**
+
+- `userId` (required) - User ID
+
+**Request Body:**
+
+```json
+{
+  "title": "string (optional)",
+  "thumbnail": "string (optional)",
+  "elements": "object (optional)"
+}
+```
+
+**Success Response (200):**
+
+```json
+{
+  "message": "Board updated successfully",
+  "updatedBoard": {
+    "id": "uuid",
+    "title": "string",
+    "thumbnail": "string or null",
+    "elements": {},
+    "ownerId": "string",
+    "createdAt": "timestamp",
+    "updatedAt": "timestamp"
+  }
+}
+```
+
+**Error Response (403):**
+
+```json
+{
+  "error": "Access denied. Only board owner or editors can update the board"
+}
+```
+
+### Delete Board
+
+**Endpoint:** `DELETE /boards/:id`
+
+**Query Parameters:**
+
+- `userId` (required) - User ID
+
+**Success Response (200):**
+
+```json
+{
+  "message": "Board deleted successfully"
+}
+```
+
+**Error Response (403):**
+
+```json
+{
+  "error": "Only the board owner can delete this board"
+}
+```
