@@ -204,9 +204,65 @@ const createBoard = async (req, res) => {
   }
 };
 
+const updateBoard = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const userId = req.query.userId;
+    const { title, thumbnail, elements } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    const board = await prisma.board.findUnique({
+      where: { id: id },
+      include: {
+        collaborators: {
+          where: { userId: userId },
+        },
+      },
+    });
+
+    if (!board) {
+      return res.status(404).json({ error: "Board not found" });
+    }
+
+    // Check if user is owner or has EDITOR role
+    const isOwner = board.ownerId === userId;
+    const isEditor = board.collaborators.some(
+      (collab) => collab.role === "EDITOR"
+    );
+
+    if (!isOwner && !isEditor) {
+      return res.status(403).json({
+        error:
+          "Access denied. Only board owner or editors can update the board",
+      });
+    }
+
+    let updateData = {};
+    if (title !== undefined) updateData.title = title;
+    if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
+    if (elements !== undefined) updateData.elements = elements;
+
+    const updatedBoard = await prisma.board.update({
+      where: { id: id },
+      data: updateData,
+    });
+
+    return res.status(200).json({ message: "Board updated successfully", updatedBoard });
+  } catch (error) {
+    console.error("error:", error);
+    return res.status(500).json({
+      error: "Failed to update board",
+    });
+  }
+};
+
 module.exports = {
   getAllBoards,
   getBoardById,
   deleteBoard,
   createBoard,
+  updateBoard,
 };
