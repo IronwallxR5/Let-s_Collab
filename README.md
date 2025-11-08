@@ -9,7 +9,6 @@
 
 - [Overview](#overview)
 - [Core Features](#core-features)
-- [Advanced Features](#advanced-features)
 - [Tech Stack](#tech-stack)
 - [Getting Started](#getting-started)
 - [Project Structure](#project-structure)
@@ -17,6 +16,7 @@
 - [Contributing](#contributing)
 - [License](#license)
 
+<a id="overview"></a>
 ## 🎯 Overview
 
 **Let's Collab** is a real-time collaborative whiteboard platform where users can create, organize, and share multiple whiteboards. Each board supports live drawing, sticky notes, shapes, text, and media — all synced instantly for every collaborator.
@@ -29,6 +29,7 @@
 - 📊 **Project Planning** - Visual project management and workflows
 - 💡 **Creative Workshops** - Real-time creative sessions
 
+<a id="core-features"></a>
 ## ✨ Core Features 
 
 ### 1. 🔐 User Accounts & Authentication
@@ -89,6 +90,7 @@
 - **Developer Tools**: GitHub for dev brainstorming
 - **API Access**: RESTful API for custom integrations
 
+<a id="tech-stack"></a>
 ## 🛠️ Tech Stack
 
 ### Frontend
@@ -111,7 +113,18 @@
 - **Database Hosting**: PlanetScale / Railway / Supabase
 
 
+<a id="getting-started"></a>
 ## 🚀 Getting Started
+<a id="project-structure"></a>
+## Project Structure
+
+The repo is split into `backend/` and `frontend/` directories. See the folders for server, routes, controllers, and the React frontend with Vite.
+
+<a id="development-roadmap"></a>
+## Development Roadmap
+
+Planned milestones include collaborative cursors, version history, team folders, and SSO integrations.
+
 
 ### Prerequisites
 
@@ -177,10 +190,12 @@ npm run dev
 ```
 
 
+<a id="contributing"></a>
 ## 🤝 Contributing
 
 We welcome contributions from the community! Here's how you can help:
 
+<a id="contributing-getting-started"></a>
 ### Getting Started
 
 1. Fork the repository
@@ -201,6 +216,7 @@ We welcome contributions from the community! Here's how you can help:
 
 Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
+<a id="license"></a>
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
