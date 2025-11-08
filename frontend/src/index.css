@@ -1,43 +1,74 @@
-/* Reset only for main layout elements, not all elements */
-body, html {
-  margin: 0;
-  padding: 0;
-}
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
+:root {
+  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --dark-gradient: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  --light-bg: #f8f9fc;
+  --card-bg: #ffffff;
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --border-color: #e2e8f0;
+  --success: #48bb78;
+  --danger: #f56565;
+  --warning: #ed8936;
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+  --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f5f5f5;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--light-bg);
+  color: var(--text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 0 24px;
 }
 
 button {
-  padding: 10px 20px;
-  margin: 5px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  background-color: #007bff;
-  color: white;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  outline: none;
 }
 
-button:hover {
-  background-color: #0056b3;
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-input {
+input, textarea {
+  font-family: 'Inter', sans-serif;
   width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.3s ease;
+}
+
+::selection {
+  background: rgba(102, 126, 234, 0.2);
+  color: var(--text-primary);
 }
 
