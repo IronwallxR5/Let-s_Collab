@@ -42,7 +42,6 @@ function WhiteboardPage() {
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load board data from backend on mount
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user") || "null");
     if (!savedUser) {
@@ -57,7 +56,6 @@ function WhiteboardPage() {
         setBoardTitle(boardData.title);
         setTempTitle(boardData.title);
 
-        // Load Excalidraw elements if they exist
         if (
           boardData.elements &&
           Array.isArray(boardData.elements) &&
@@ -77,40 +75,32 @@ function WhiteboardPage() {
     loadBoard();
   }, [id, excalidrawAPI, navigate]);
 
-  // Auto-save function with debouncing
   useEffect(() => {
     if (!excalidrawAPI) return;
 
-    const saveToLocalStorage = () => {
-      setIsSaving(true);
-      const elements = excalidrawAPI.getSceneElements();
-      const appState = excalidrawAPI.getAppState();
+    const saveToBackend = async () => {
+      try {
+        setIsSaving(true);
+        const elements = excalidrawAPI.getSceneElements();
 
-      const savedBoards = JSON.parse(
-        localStorage.getItem("whiteboards") || "[]"
-      );
-      const boardIndex = savedBoards.findIndex((board) => board.id === id);
+        const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+        if (!savedUser) {
+          console.error("User not found");
+          return;
+        }
 
-      if (boardIndex !== -1) {
-        savedBoards[boardIndex] = {
-          ...savedBoards[boardIndex],
-          excalidrawData: {
-            elements,
-            appState: {
-              viewBackgroundColor: appState.viewBackgroundColor,
-              currentItemFontFamily: appState.currentItemFontFamily,
-            },
-          },
-          updatedAt: new Date().toISOString(),
-        };
-        localStorage.setItem("whiteboards", JSON.stringify(savedBoards));
+        await whiteboardService.updateBoard(id, savedUser.id, {
+          elements: elements,
+        });
 
         setTimeout(() => setIsSaving(false), 500);
+      } catch (error) {
+        console.error("Error auto-saving:", error);
+        setIsSaving(false);
       }
     };
 
-    // Debounce auto-save (save after 2 seconds of inactivity)
-    const timeoutId = setTimeout(saveToLocalStorage, 2000);
+    const timeoutId = setTimeout(saveToBackend, 2000);
 
     return () => clearTimeout(timeoutId);
   }, [excalidrawAPI, id]);
@@ -134,7 +124,6 @@ function WhiteboardPage() {
         return;
       }
 
-      // Update title on backend
       await whiteboardService.updateBoard(id, savedUser.id, {
         title: tempTitle,
       });
