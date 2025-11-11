@@ -117,18 +117,27 @@ function DashboardPage() {
     }
   };
 
-  const deleteWhiteboard = () => {
+  const deleteWhiteboard = async () => {
     if (!selectedBoard) return;
 
-    const updatedBoards = whiteboards.filter(
-      (board) => board.id !== selectedBoard.id
-    );
-    localStorage.setItem("whiteboards", JSON.stringify(updatedBoards));
-    setWhiteboards(updatedBoards);
+    try {
+      // Call backend API to delete board
+      await whiteboardService.deleteBoard(selectedBoard.id, user.id);
 
-    toast.success("Whiteboard deleted");
-    setDeleteDialogOpen(false);
-    setSelectedBoard(null);
+      // Remove from local state
+      const updatedBoards = whiteboards.filter(
+        (board) => board.id !== selectedBoard.id
+      );
+      setWhiteboards(updatedBoards);
+
+      toast.success("Whiteboard deleted");
+      setDeleteDialogOpen(false);
+      setSelectedBoard(null);
+    } catch (error) {
+      console.error("Error deleting whiteboard:", error);
+      toast.error(error.message || "Failed to delete whiteboard");
+      setDeleteDialogOpen(false);
+    }
   };
 
   const openWhiteboard = (id) => {
