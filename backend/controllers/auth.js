@@ -4,7 +4,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
 const getCookieOptions = () => {
-  const isProduction = process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
+  const isProduction =
+    process.env.NODE_ENV === "production" || process.env.RAILWAY_ENVIRONMENT;
   return {
     httpOnly: true,
     secure: isProduction,
@@ -16,11 +17,11 @@ const getCookieOptions = () => {
 async function register(req, res) {
   try {
     const { name, email, password } = req.body;
-    
+
     const existingUser = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
-    
+
     if (existingUser) {
       return res
         .status(400)
@@ -33,8 +34,8 @@ async function register(req, res) {
       data: {
         name,
         email,
-        passwordHash
-      }
+        passwordHash,
+      },
     });
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
@@ -45,7 +46,7 @@ async function register(req, res) {
 
     res.status(201).json({
       success: true,
-      user: { id: user.id, name: user.name, email: user.email },
+      user: { id: user.id, name: user.name, email: user.email, token },
     });
   } catch (err) {
     console.error(err);
@@ -58,9 +59,9 @@ async function login(req, res) {
     const { email, password } = req.body;
 
     const user = await prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
-    
+
     if (!user) {
       return res.status(400).json({ error: "Invalid credentials" });
     }
@@ -71,7 +72,7 @@ async function login(req, res) {
     }
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "7d", 
+      expiresIn: "7d",
     });
 
     res.cookie("token", token, getCookieOptions());
@@ -79,7 +80,7 @@ async function login(req, res) {
     res.json({
       success: true,
       message: "Logged in successfully",
-      user: { id: user.id, name: user.name, email: user.email },
+      user: { id: user.id, name: user.name, email: user.email, token },
     });
   } catch (err) {
     console.error(err);

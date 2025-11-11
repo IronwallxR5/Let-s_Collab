@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Box,
   Container,
@@ -23,7 +23,7 @@ import {
   DialogContent,
   DialogActions,
   Stack,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Add as AddIcon,
   Search as SearchIcon,
@@ -34,14 +34,15 @@ import {
   Logout as LogoutIcon,
   Dashboard as DashboardIcon,
   FolderOpen as FolderOpenIcon,
-} from '@mui/icons-material';
-import toast from 'react-hot-toast';
+} from "@mui/icons-material";
+import toast from "react-hot-toast";
+import { whiteboardService } from "../services/index";
 
 function DashboardPage() {
   const navigate = useNavigate();
   const [whiteboards, setWhiteboards] = useState([]);
   const [filteredBoards, setFilteredBoards] = useState([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedBoard, setSelectedBoard] = useState(null);
   const [userMenuAnchor, setUserMenuAnchor] = useState(null);
@@ -50,21 +51,21 @@ function DashboardPage() {
 
   // Load user and whiteboards from localStorage on mount
   useEffect(() => {
-    const savedUser = JSON.parse(localStorage.getItem('user') || 'null');
+    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
     if (!savedUser) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     setUser(savedUser);
 
-    const savedBoards = JSON.parse(localStorage.getItem('whiteboards') || '[]');
+    const savedBoards = JSON.parse(localStorage.getItem("whiteboards") || "[]");
     setWhiteboards(savedBoards);
     setFilteredBoards(savedBoards);
   }, [navigate]);
 
   // Filter boards based on search query
   useEffect(() => {
-    if (searchQuery.trim() === '') {
+    if (searchQuery.trim() === "") {
       setFilteredBoards(whiteboards);
     } else {
       const filtered = whiteboards.filter((board) =>
@@ -74,31 +75,42 @@ function DashboardPage() {
     }
   }, [searchQuery, whiteboards]);
 
-  const createNewWhiteboard = () => {
-    const newBoard = {
-      id: Date.now().toString(),
-      title: `Untitled Board ${whiteboards.length + 1}`,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      excalidrawData: null,
-    };
+  const createNewWhiteboard = async () => {
+    try {
+      if (!user?.id) {
+        toast.error("User not found. Please login again.");
+        return;
+      }
 
-    const updatedBoards = [...whiteboards, newBoard];
-    localStorage.setItem('whiteboards', JSON.stringify(updatedBoards));
-    setWhiteboards(updatedBoards);
-    
-    toast.success('New whiteboard created!');
-    navigate(`/whiteboard/${newBoard.id}`);
+      const title = `Untitled Board ${whiteboards.length + 1}`;
+
+      // Call backend API to create board
+      const response = await whiteboardService.createWhiteboard(title, user.id);
+
+      if (response?.newBoard) {
+        // Add to local state
+        const updatedBoards = [...whiteboards, response.newBoard];
+        setWhiteboards(updatedBoards);
+
+        toast.success("New whiteboard created!");
+        navigate(`/whiteboard/${response.newBoard.id}`);
+      }
+    } catch (error) {
+      console.error("Error creating whiteboard:", error);
+      toast.error(error.message || "Failed to create whiteboard");
+    }
   };
 
   const deleteWhiteboard = () => {
     if (!selectedBoard) return;
 
-    const updatedBoards = whiteboards.filter((board) => board.id !== selectedBoard.id);
-    localStorage.setItem('whiteboards', JSON.stringify(updatedBoards));
+    const updatedBoards = whiteboards.filter(
+      (board) => board.id !== selectedBoard.id
+    );
+    localStorage.setItem("whiteboards", JSON.stringify(updatedBoards));
     setWhiteboards(updatedBoards);
-    
-    toast.success('Whiteboard deleted');
+
+    toast.success("Whiteboard deleted");
     setDeleteDialogOpen(false);
     setSelectedBoard(null);
   };
@@ -123,9 +135,9 @@ function DashboardPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    toast.success('Logged out successfully');
-    navigate('/login');
+    localStorage.removeItem("user");
+    toast.success("Logged out successfully");
+    navigate("/login");
   };
 
   const formatDate = (dateString) => {
@@ -135,32 +147,39 @@ function DashboardPage() {
     const diffInHours = Math.floor(diffInMs / (1000 * 60 * 60));
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
 
-    if (diffInHours < 1) return 'Just now';
-    if (diffInHours < 24) return `${diffInHours} hour${diffInHours > 1 ? 's' : ''} ago`;
-    if (diffInDays === 1) return 'Yesterday';
+    if (diffInHours < 1) return "Just now";
+    if (diffInHours < 24)
+      return `${diffInHours} hour${diffInHours > 1 ? "s" : ""} ago`;
+    if (diffInDays === 1) return "Yesterday";
     if (diffInDays < 7) return `${diffInDays} days ago`;
     return date.toLocaleDateString();
   };
 
   return (
-    <Box sx={{ flexGrow: 1, bgcolor: 'background.default', minHeight: '100vh' }}>
+    <Box
+      sx={{ flexGrow: 1, bgcolor: "background.default", minHeight: "100vh" }}
+    >
       {/* AppBar */}
       <AppBar position="static" color="primary" elevation={2}>
         <Toolbar>
           <DashboardIcon sx={{ mr: 2 }} />
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 600 }}>
+          <Typography
+            variant="h6"
+            component="div"
+            sx={{ flexGrow: 1, fontWeight: 600 }}
+          >
             Let's Collab - Dashboard
           </Typography>
-          
+
           <IconButton
             color="inherit"
             onClick={(e) => setUserMenuAnchor(e.currentTarget)}
           >
-            <Avatar sx={{ width: 32, height: 32, bgcolor: 'secondary.main' }}>
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
+            <Avatar sx={{ width: 32, height: 32, bgcolor: "secondary.main" }}>
+              {user?.name?.charAt(0).toUpperCase() || "U"}
             </Avatar>
           </IconButton>
-          
+
           <Menu
             anchorEl={userMenuAnchor}
             open={Boolean(userMenuAnchor)}
@@ -168,7 +187,7 @@ function DashboardPage() {
           >
             <MenuItem disabled>
               <AccountCircleIcon sx={{ mr: 1 }} />
-              {user?.name || 'User'}
+              {user?.name || "User"}
             </MenuItem>
             <MenuItem onClick={handleLogout}>
               <LogoutIcon sx={{ mr: 1 }} />
@@ -183,23 +202,28 @@ function DashboardPage() {
         <Box sx={{ mb: 4 }}>
           <Box
             sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between',
-              alignItems: { xs: 'stretch', sm: 'center' },
+              display: "flex",
+              flexDirection: { xs: "column", sm: "row" },
+              justifyContent: "space-between",
+              alignItems: { xs: "stretch", sm: "center" },
               gap: 2,
               mb: 3,
             }}
           >
             <Box>
-              <Typography variant="h4" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
+              <Typography
+                variant="h4"
+                component="h1"
+                sx={{ fontWeight: 700, mb: 1 }}
+              >
                 My Whiteboards
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                {whiteboards.length} {whiteboards.length === 1 ? 'whiteboard' : 'whiteboards'}
+                {whiteboards.length}{" "}
+                {whiteboards.length === 1 ? "whiteboard" : "whiteboards"}
               </Typography>
             </Box>
-            
+
             <Button
               variant="contained"
               size="large"
@@ -208,7 +232,7 @@ function DashboardPage() {
               sx={{
                 py: 1.5,
                 px: 3,
-                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                background: "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)",
               }}
             >
               New Whiteboard
@@ -236,18 +260,20 @@ function DashboardPage() {
         {filteredBoards.length === 0 ? (
           <Box
             sx={{
-              textAlign: 'center',
+              textAlign: "center",
               py: 10,
             }}
           >
-            <FolderOpenIcon sx={{ fontSize: 80, color: 'text.secondary', mb: 2 }} />
+            <FolderOpenIcon
+              sx={{ fontSize: 80, color: "text.secondary", mb: 2 }}
+            />
             <Typography variant="h5" gutterBottom sx={{ fontWeight: 600 }}>
-              {searchQuery ? 'No whiteboards found' : 'No whiteboards yet'}
+              {searchQuery ? "No whiteboards found" : "No whiteboards yet"}
             </Typography>
             <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               {searchQuery
-                ? 'Try adjusting your search'
-                : 'Create your first whiteboard to get started'}
+                ? "Try adjusting your search"
+                : "Create your first whiteboard to get started"}
             </Typography>
             {!searchQuery && (
               <Button
@@ -256,7 +282,8 @@ function DashboardPage() {
                 startIcon={<AddIcon />}
                 onClick={createNewWhiteboard}
                 sx={{
-                  background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                  background:
+                    "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)",
                 }}
               >
                 Create Your First Whiteboard
@@ -269,10 +296,10 @@ function DashboardPage() {
               <Grid item xs={12} sm={6} md={4} lg={3} key={board.id}>
                 <Card
                   sx={{
-                    height: '100%',
-                    transition: 'transform 0.2s, box-shadow 0.2s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
+                    height: "100%",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                    "&:hover": {
+                      transform: "translateY(-4px)",
                       boxShadow: 6,
                     },
                   }}
@@ -282,29 +309,60 @@ function DashboardPage() {
                     <Box
                       sx={{
                         height: 180,
-                        bgcolor: 'grey.100',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
+                        bgcolor: "grey.100",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
                         borderBottom: 1,
-                        borderColor: 'divider',
+                        borderColor: "divider",
                       }}
                     >
-                      <svg viewBox="0 0 100 100" style={{ width: '60%', height: '60%' }}>
-                        <rect x="10" y="10" width="80" height="60" fill="#e0e0e0" rx="4" />
-                        <line x1="20" y1="25" x2="60" y2="25" stroke="#999" strokeWidth="2" />
-                        <line x1="20" y1="35" x2="75" y2="35" stroke="#999" strokeWidth="2" />
+                      <svg
+                        viewBox="0 0 100 100"
+                        style={{ width: "60%", height: "60%" }}
+                      >
+                        <rect
+                          x="10"
+                          y="10"
+                          width="80"
+                          height="60"
+                          fill="#e0e0e0"
+                          rx="4"
+                        />
+                        <line
+                          x1="20"
+                          y1="25"
+                          x2="60"
+                          y2="25"
+                          stroke="#999"
+                          strokeWidth="2"
+                        />
+                        <line
+                          x1="20"
+                          y1="35"
+                          x2="75"
+                          y2="35"
+                          stroke="#999"
+                          strokeWidth="2"
+                        />
                         <circle cx="25" cy="55" r="8" fill="#999" />
-                        <rect x="40" y="48" width="25" height="15" fill="#999" rx="2" />
+                        <rect
+                          x="40"
+                          y="48"
+                          width="25"
+                          height="15"
+                          fill="#999"
+                          rx="2"
+                        />
                       </svg>
                     </Box>
 
                     <CardContent>
                       <Box
                         sx={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "flex-start",
                         }}
                       >
                         <Box sx={{ flexGrow: 1, minWidth: 0 }}>
@@ -319,7 +377,7 @@ function DashboardPage() {
                           <Chip
                             label={`Edited ${formatDate(board.updatedAt)}`}
                             size="small"
-                            sx={{ fontSize: '0.75rem' }}
+                            sx={{ fontSize: "0.75rem" }}
                           />
                         </Box>
 
@@ -353,11 +411,15 @@ function DashboardPage() {
       </Menu>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)}>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={() => setDeleteDialogOpen(false)}
+      >
         <DialogTitle>Delete Whiteboard?</DialogTitle>
         <DialogContent>
           <Typography>
-            Are you sure you want to delete "{selectedBoard?.title}"? This action cannot be undone.
+            Are you sure you want to delete "{selectedBoard?.title}"? This
+            action cannot be undone.
           </Typography>
         </DialogContent>
         <DialogActions>

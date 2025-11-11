@@ -1,82 +1,94 @@
-import api from './api';
+import fetchWithAuth from "./api";
 
 export const authService = {
   // Register a new user
   register: async (name, email, password) => {
-    const response = await api.post('/auth/register', { name, email, password });
-    return response.data;
+    return await fetchWithAuth("/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ name, email, password }),
+    });
   },
 
   // Login user
   login: async (email, password) => {
-    const response = await api.post('/auth/login', { email, password });
-    return response.data;
+    return await fetchWithAuth("/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
   },
 
   // Get current user
   getCurrentUser: async () => {
-    const response = await api.get('/auth/me');
-    return response.data;
+    return await fetchWithAuth("/auth/me");
   },
 
   // Logout user
   logout: async () => {
-    const response = await api.post('/auth/logout');
-    return response.data;
+    return await fetchWithAuth("/auth/logout", {
+      method: "POST",
+    });
   },
 };
 
 export const whiteboardService = {
   // Get all whiteboards for current user
   getAllWhiteboards: async () => {
-    const response = await api.get('/whiteboards');
-    return response.data;
+    return await fetchWithAuth("/whiteboards");
   },
 
   // Get a single whiteboard by ID
   getWhiteboard: async (id) => {
-    const response = await api.get(`/whiteboards/${id}`);
-    return response.data;
+    return await fetchWithAuth(`/whiteboards/${id}`);
   },
 
   // Create a new whiteboard
-  createWhiteboard: async (title) => {
-    const response = await api.post('/whiteboards', { title });
-    return response.data;
+  createWhiteboard: async (title, userId) => {
+    return await fetchWithAuth("/boards", {
+      method: "POST",
+      body: JSON.stringify({ title, userId }),
+    });
   },
 
   // Update a whiteboard
   updateWhiteboard: async (id, data) => {
-    const response = await api.put(`/whiteboards/${id}`, data);
-    return response.data;
+    return await fetchWithAuth(`/whiteboards/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(data),
+    });
   },
 
   // Delete a whiteboard
   deleteWhiteboard: async (id) => {
-    const response = await api.delete(`/whiteboards/${id}`);
-    return response.data;
+    return await fetchWithAuth(`/whiteboards/${id}`, {
+      method: "DELETE",
+    });
   },
 
   // Invite collaborator
   inviteCollaborator: async (whiteboardId, email, role) => {
-    const response = await api.post(`/whiteboards/${whiteboardId}/invite`, { email, role });
-    return response.data;
+    return await fetchWithAuth(`/whiteboards/${whiteboardId}/invite`, {
+      method: "POST",
+      body: JSON.stringify({ email, role }),
+    });
   },
 
   // Remove collaborator
   removeCollaborator: async (whiteboardId, userId) => {
-    const response = await api.delete(`/whiteboards/${whiteboardId}/collaborators/${userId}`);
-    return response.data;
+    return await fetchWithAuth(
+      `/whiteboards/${whiteboardId}/collaborators/${userId}`,
+      {
+        method: "DELETE",
+      }
+    );
   },
 
   // Generate share link
   generateShareLink: async (whiteboardId, role, expiresIn) => {
-    const response = await api.post(`/whiteboards/${whiteboardId}/share-link`, {
-      role,
-      expiresIn,
+    return await fetchWithAuth(`/whiteboards/${whiteboardId}/share-link`, {
+      method: "POST",
+      body: JSON.stringify({ role, expiresIn }),
     });
-    return response.data;
   },
 };
 
-export default api;
+export default fetchWithAuth;
