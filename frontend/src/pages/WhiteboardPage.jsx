@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Excalidraw } from '@excalidraw/excalidraw';
-import '@excalidraw/excalidraw/index.css';
-import { useParams, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Excalidraw } from "@excalidraw/excalidraw";
+import "@excalidraw/excalidraw/index.css";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   Box,
   AppBar,
@@ -18,7 +18,7 @@ import {
   DialogContent,
   DialogActions,
   Stack,
-} from '@mui/material';
+} from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
   FileDownload as FileDownloadIcon,
@@ -27,37 +27,54 @@ import {
   Check as CheckIcon,
   Close as CloseIcon,
   SaveAlt as SaveAltIcon,
-} from '@mui/icons-material';
-import toast from 'react-hot-toast';
+} from "@mui/icons-material";
+import toast from "react-hot-toast";
+import { whiteboardService } from "../services/index";
 
 function WhiteboardPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [excalidrawAPI, setExcalidrawAPI] = useState(null);
-  const [boardTitle, setBoardTitle] = useState('Untitled Board');
+  const [boardTitle, setBoardTitle] = useState("Untitled Board");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [tempTitle, setTempTitle] = useState('');
+  const [tempTitle, setTempTitle] = useState("");
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Load board data from localStorage on mount
+  // Load board data from backend on mount
   useEffect(() => {
-    const savedBoards = JSON.parse(localStorage.getItem('whiteboards') || '[]');
-    const currentBoard = savedBoards.find((board) => board.id === id);
-
-    if (currentBoard) {
-      setBoardTitle(currentBoard.title);
-      setTempTitle(currentBoard.title);
-
-      // Load Excalidraw data if it exists
-      if (currentBoard.excalidrawData && excalidrawAPI) {
-        excalidrawAPI.updateScene(currentBoard.excalidrawData);
-      }
-    } else {
-      toast.error('Whiteboard not found');
-      navigate('/dashboard');
+    const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+    if (!savedUser) {
+      navigate("/login");
+      return;
     }
+
+    const loadBoard = async () => {
+      try {
+        const boardData = await whiteboardService.getBoard(id, savedUser.id);
+
+        setBoardTitle(boardData.title);
+        setTempTitle(boardData.title);
+
+        // Load Excalidraw elements if they exist
+        if (
+          boardData.elements &&
+          Array.isArray(boardData.elements) &&
+          excalidrawAPI
+        ) {
+          excalidrawAPI.updateScene({
+            elements: boardData.elements,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading board:", error);
+        toast.error("Failed to load whiteboard");
+        navigate("/dashboard");
+      }
+    };
+
+    loadBoard();
   }, [id, excalidrawAPI, navigate]);
 
   // Auto-save function with debouncing
@@ -69,7 +86,9 @@ function WhiteboardPage() {
       const elements = excalidrawAPI.getSceneElements();
       const appState = excalidrawAPI.getAppState();
 
-      const savedBoards = JSON.parse(localStorage.getItem('whiteboards') || '[]');
+      const savedBoards = JSON.parse(
+        localStorage.getItem("whiteboards") || "[]"
+      );
       const boardIndex = savedBoards.findIndex((board) => board.id === id);
 
       if (boardIndex !== -1) {
@@ -84,8 +103,8 @@ function WhiteboardPage() {
           },
           updatedAt: new Date().toISOString(),
         };
-        localStorage.setItem('whiteboards', JSON.stringify(savedBoards));
-        
+        localStorage.setItem("whiteboards", JSON.stringify(savedBoards));
+
         setTimeout(() => setIsSaving(false), 500);
       }
     };
@@ -102,21 +121,21 @@ function WhiteboardPage() {
   };
 
   const handleTitleSave = () => {
-    if (tempTitle.trim() === '') {
-      toast.error('Title cannot be empty');
+    if (tempTitle.trim() === "") {
+      toast.error("Title cannot be empty");
       return;
     }
 
     setBoardTitle(tempTitle);
 
     // Update title in localStorage
-    const savedBoards = JSON.parse(localStorage.getItem('whiteboards') || '[]');
+    const savedBoards = JSON.parse(localStorage.getItem("whiteboards") || "[]");
     const boardIndex = savedBoards.findIndex((board) => board.id === id);
 
     if (boardIndex !== -1) {
       savedBoards[boardIndex].title = tempTitle;
-      localStorage.setItem('whiteboards', JSON.stringify(savedBoards));
-      toast.success('Title updated');
+      localStorage.setItem("whiteboards", JSON.stringify(savedBoards));
+      toast.success("Title updated");
     }
 
     setIsEditingTitle(false);
@@ -134,48 +153,48 @@ function WhiteboardPage() {
     const appState = excalidrawAPI.getAppState();
 
     try {
-      if (type === 'png') {
+      if (type === "png") {
         const blob = await excalidrawAPI.exportToBlob({
           elements,
           appState,
-          mimeType: 'image/png',
+          mimeType: "image/png",
         });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `${boardTitle}.png`;
         a.click();
-        toast.success('Exported as PNG');
-      } else if (type === 'svg') {
+        toast.success("Exported as PNG");
+      } else if (type === "svg") {
         const svg = await excalidrawAPI.exportToSvg({
           elements,
           appState,
         });
         const svgString = new XMLSerializer().serializeToString(svg);
-        const blob = new Blob([svgString], { type: 'image/svg+xml' });
+        const blob = new Blob([svgString], { type: "image/svg+xml" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
         a.download = `${boardTitle}.svg`;
         a.click();
-        toast.success('Exported as SVG');
+        toast.success("Exported as SVG");
       }
     } catch (err) {
-      console.error('Export error:', err);
-      toast.error('Export failed');
+      console.error("Export error:", err);
+      toast.error("Export failed");
     }
 
     setExportMenuAnchor(null);
   };
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Toolbar */}
       <AppBar position="static" color="default" elevation={2}>
         <Toolbar>
           <IconButton
             edge="start"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate("/dashboard")}
             sx={{ mr: 2 }}
           >
             <ArrowBackIcon />
@@ -183,19 +202,23 @@ function WhiteboardPage() {
 
           {/* Title Section */}
           {isEditingTitle ? (
-            <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
+            <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
               <TextField
                 size="small"
                 value={tempTitle}
                 onChange={(e) => setTempTitle(e.target.value)}
                 onKeyPress={(e) => {
-                  if (e.key === 'Enter') handleTitleSave();
-                  if (e.key === 'Escape') handleTitleCancel();
+                  if (e.key === "Enter") handleTitleSave();
+                  if (e.key === "Escape") handleTitleCancel();
                 }}
                 autoFocus
                 sx={{ mr: 1, maxWidth: 400 }}
               />
-              <IconButton size="small" color="primary" onClick={handleTitleSave}>
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={handleTitleSave}
+              >
                 <CheckIcon />
               </IconButton>
               <IconButton size="small" onClick={handleTitleCancel}>
@@ -205,10 +228,10 @@ function WhiteboardPage() {
           ) : (
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
+                display: "flex",
+                alignItems: "center",
                 flexGrow: 1,
-                cursor: 'pointer',
+                cursor: "pointer",
               }}
               onClick={handleTitleEdit}
             >
@@ -246,7 +269,7 @@ function WhiteboardPage() {
               startIcon={<ShareIcon />}
               onClick={() => setShareDialogOpen(true)}
               sx={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #ec4899 100%)',
+                background: "linear-gradient(135deg, #6366f1 0%, #ec4899 100%)",
               }}
             >
               Share
@@ -261,22 +284,33 @@ function WhiteboardPage() {
         open={Boolean(exportMenuAnchor)}
         onClose={() => setExportMenuAnchor(null)}
       >
-        <MenuItem onClick={() => handleExport('png')}>Export as PNG</MenuItem>
-        <MenuItem onClick={() => handleExport('svg')}>Export as SVG</MenuItem>
+        <MenuItem onClick={() => handleExport("png")}>Export as PNG</MenuItem>
+        <MenuItem onClick={() => handleExport("svg")}>Export as SVG</MenuItem>
       </Menu>
 
       {/* Share Dialog */}
-      <Dialog open={shareDialogOpen} onClose={() => setShareDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog
+        open={shareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
         <DialogTitle>Share Whiteboard</DialogTitle>
         <DialogContent>
           <Typography color="text.secondary" sx={{ mb: 2 }}>
             Collaboration features are coming soon! You'll be able to:
           </Typography>
           <Stack spacing={1}>
-            <Typography variant="body2">✓ Invite collaborators by email</Typography>
-            <Typography variant="body2">✓ Set permissions (Viewer, Editor, Owner)</Typography>
+            <Typography variant="body2">
+              ✓ Invite collaborators by email
+            </Typography>
+            <Typography variant="body2">
+              ✓ Set permissions (Viewer, Editor, Owner)
+            </Typography>
             <Typography variant="body2">✓ Generate shareable links</Typography>
-            <Typography variant="body2">✓ See live cursors and presence</Typography>
+            <Typography variant="body2">
+              ✓ See live cursors and presence
+            </Typography>
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -285,12 +319,12 @@ function WhiteboardPage() {
       </Dialog>
 
       {/* Whiteboard Canvas */}
-      <Box sx={{ flexGrow: 1, overflow: 'hidden' }}>
+      <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
         <Excalidraw
           excalidrawAPI={(api) => setExcalidrawAPI(api)}
           initialData={{
             elements: [],
-            appState: { viewBackgroundColor: '#ffffff' },
+            appState: { viewBackgroundColor: "#ffffff" },
           }}
         />
       </Box>
