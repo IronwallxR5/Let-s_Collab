@@ -49,7 +49,6 @@ function DashboardPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [user, setUser] = useState(null);
 
-  // Load user and whiteboards from localStorage on mount
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user") || "null");
     if (!savedUser) {
@@ -58,9 +57,26 @@ function DashboardPage() {
     }
     setUser(savedUser);
 
-    const savedBoards = JSON.parse(localStorage.getItem("whiteboards") || "[]");
-    setWhiteboards(savedBoards);
-    setFilteredBoards(savedBoards);
+    // Load boards from backend
+    const loadBoards = async () => {
+      try {
+        const data = await whiteboardService.getAllBoards(savedUser.id);
+
+        // Backend returns { response: [...boards] }
+        if (data?.response) {
+          setWhiteboards(data.response);
+          setFilteredBoards(data.response);
+        }
+      } catch (error) {
+        console.error("Error loading boards:", error);
+        toast.error("Failed to load whiteboards");
+        // Fallback to empty array
+        setWhiteboards([]);
+        setFilteredBoards([]);
+      }
+    };
+
+    loadBoards();
   }, [navigate]);
 
   // Filter boards based on search query

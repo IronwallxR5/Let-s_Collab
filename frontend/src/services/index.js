@@ -31,14 +31,14 @@ export const authService = {
 };
 
 export const whiteboardService = {
-  // Get all whiteboards for current user
-  getAllWhiteboards: async () => {
-    return await fetchWithAuth("/whiteboards");
+  // Get all boards for current user
+  getAllBoards: async (userId) => {
+    return await fetchWithAuth(`/boards?userId=${userId}`);
   },
 
-  // Get a single whiteboard by ID
-  getWhiteboard: async (id) => {
-    return await fetchWithAuth(`/whiteboards/${id}`);
+  // Get a single board by ID
+  getBoard: async (id, userId) => {
+    return await fetchWithAuth(`/boards/${id}?userId=${userId}`);
   },
 
   // Create a new whiteboard
@@ -49,17 +49,17 @@ export const whiteboardService = {
     });
   },
 
-  // Update a whiteboard
-  updateWhiteboard: async (id, data) => {
-    return await fetchWithAuth(`/whiteboards/${id}`, {
-      method: "PUT",
+  // Update a board
+  updateBoard: async (id, userId, data) => {
+    return await fetchWithAuth(`/boards/${id}?userId=${userId}`, {
+      method: "PATCH",
       body: JSON.stringify(data),
     });
   },
 
-  // Delete a whiteboard
-  deleteWhiteboard: async (id) => {
-    return await fetchWithAuth(`/whiteboards/${id}`, {
+  // Delete a board
+  deleteBoard: async (id, userId) => {
+    return await fetchWithAuth(`/boards/${id}?userId=${userId}`, {
       method: "DELETE",
     });
   },
