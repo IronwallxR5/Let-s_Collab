@@ -57,12 +57,10 @@ function DashboardPage() {
     }
     setUser(savedUser);
 
-    // Load boards from backend
     const loadBoards = async () => {
       try {
         const data = await whiteboardService.getAllBoards(savedUser.id);
 
-        // Backend returns { response: [...boards] }
         if (data?.response) {
           setWhiteboards(data.response);
           setFilteredBoards(data.response);
@@ -70,7 +68,6 @@ function DashboardPage() {
       } catch (error) {
         console.error("Error loading boards:", error);
         toast.error("Failed to load whiteboards");
-        // Fallback to empty array
         setWhiteboards([]);
         setFilteredBoards([]);
       }
@@ -79,7 +76,6 @@ function DashboardPage() {
     loadBoards();
   }, [navigate]);
 
-  // Filter boards based on search query
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredBoards(whiteboards);
@@ -100,11 +96,9 @@ function DashboardPage() {
 
       const title = `Untitled Board ${whiteboards.length + 1}`;
 
-      // Call backend API to create board
       const response = await whiteboardService.createWhiteboard(title, user.id);
 
       if (response?.newBoard) {
-        // Add to local state
         const updatedBoards = [...whiteboards, response.newBoard];
         setWhiteboards(updatedBoards);
 
@@ -121,10 +115,8 @@ function DashboardPage() {
     if (!selectedBoard) return;
 
     try {
-      // Call backend API to delete board
       await whiteboardService.deleteBoard(selectedBoard.id, user.id);
 
-      // Remove from local state
       const updatedBoards = whiteboards.filter(
         (board) => board.id !== selectedBoard.id
       );
@@ -184,7 +176,6 @@ function DashboardPage() {
     <Box
       sx={{ flexGrow: 1, bgcolor: "background.default", minHeight: "100vh" }}
     >
-      {/* AppBar */}
       <AppBar position="static" color="primary" elevation={2}>
         <Toolbar>
           <DashboardIcon sx={{ mr: 2 }} />
@@ -223,7 +214,6 @@ function DashboardPage() {
       </AppBar>
 
       <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Header Section */}
         <Box sx={{ mb: 4 }}>
           <Box
             sx={{
@@ -264,7 +254,6 @@ function DashboardPage() {
             </Button>
           </Box>
 
-          {/* Search Bar */}
           <TextField
             fullWidth
             placeholder="Search whiteboards..."
@@ -281,7 +270,6 @@ function DashboardPage() {
           />
         </Box>
 
-        {/* Whiteboards Grid */}
         {filteredBoards.length === 0 ? (
           <Box
             sx={{
@@ -330,7 +318,6 @@ function DashboardPage() {
                   }}
                 >
                   <CardActionArea onClick={() => openWhiteboard(board.id)}>
-                    {/* Thumbnail */}
                     <Box
                       sx={{
                         height: 180,
@@ -423,7 +410,6 @@ function DashboardPage() {
         )}
       </Container>
 
-      {/* Context Menu */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -435,7 +421,6 @@ function DashboardPage() {
         </MenuItem>
       </Menu>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}

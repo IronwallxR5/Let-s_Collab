@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 import { useParams, useNavigate } from "react-router-dom";
@@ -34,13 +34,22 @@ import { whiteboardService } from "../services/index";
 function WhiteboardPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [excalidrawAPI, setExcalidrawAPI] = useState(null);
+  const excalidrawRef = useRef(null);
+  const setExcalidrawApi = React.useCallback((api) => {
+    excalidrawRef.current = api;
+  }, []);
+
+  const applyingRemoteUpdate = useRef(false);
+  const lastSerializedElementsRef = useRef("");
+  const lastSavedSerializedRef = useRef("");
   const [boardTitle, setBoardTitle] = useState("Untitled Board");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
   const [exportMenuAnchor, setExportMenuAnchor] = useState(null);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [boardData, setBoardData] = useState(null);
+  const [lastSaved, setLastSaved] = useState(Date.now());
 
   useEffect(() => {
     const savedUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -51,20 +60,11 @@ function WhiteboardPage() {
 
     const loadBoard = async () => {
       try {
-        const boardData = await whiteboardService.getBoard(id, savedUser.id);
-
-        setBoardTitle(boardData.title);
-        setTempTitle(boardData.title);
-
-        if (
-          boardData.elements &&
-          Array.isArray(boardData.elements) &&
-          excalidrawAPI
-        ) {
-          excalidrawAPI.updateScene({
-            elements: boardData.elements,
-          });
-        }
+        const response = await whiteboardService.getBoard(id, savedUser.id);
+        const data = response.response || response;
+        setBoardTitle(data.title);
+        setTempTitle(data.title);
+        setBoardData(data);
       } catch (error) {
         console.error("Error loading board:", error);
         toast.error("Failed to load whiteboard");
@@ -73,25 +73,89 @@ function WhiteboardPage() {
     };
 
     loadBoard();
-  }, [id, excalidrawAPI, navigate]);
+  }, [id, navigate]);
 
   useEffect(() => {
-    if (!excalidrawAPI) return;
+    if (!excalidrawRef.current || !boardData) return;
+
+    if (boardData.elements && Array.isArray(boardData.elements)) {
+      applyingRemoteUpdate.current = true;
+      excalidrawRef.current.updateScene({
+        elements: boardData.elements,
+      });
+      requestAnimationFrame(() => {
+        applyingRemoteUpdate.current = false;
+      });
+    }
+  }, [boardData]);
+
+  const handleChange = (elements, appState) => {
+    if (!excalidrawRef.current) return;
+
+    if (applyingRemoteUpdate.current) {
+      applyingRemoteUpdate.current = false;
+      return;
+    }
+
+    let serialized;
+    try {
+      serialized = JSON.stringify(elements || []);
+    } catch (e) {
+      serialized = null;
+    }
+
+    if (serialized && serialized === lastSerializedElementsRef.current) {
+      return;
+    }
+
+    if (serialized) lastSerializedElementsRef.current = serialized;
+
+    if (
+      serialized &&
+      boardData?.elements &&
+      Array.isArray(boardData.elements)
+    ) {
+      try {
+        if (JSON.stringify(boardData.elements) === serialized) {
+          return;
+        }
+      } catch (e) {}
+    }
+
+    setLastSaved(Date.now());
+  };
+
+  useEffect(() => {
+    if (!excalidrawRef.current || lastSaved === 0) return;
 
     const saveToBackend = async () => {
       try {
         setIsSaving(true);
-        const elements = excalidrawAPI.getSceneElements();
+        const elements = excalidrawRef.current.getSceneElements();
+        let serialized;
+        try {
+          serialized = JSON.stringify(elements || []);
+        } catch (e) {
+          serialized = null;
+        }
+
+        if (serialized && serialized === lastSavedSerializedRef.current) {
+          setIsSaving(false);
+          return;
+        }
 
         const savedUser = JSON.parse(localStorage.getItem("user") || "null");
         if (!savedUser) {
           console.error("User not found");
+          setIsSaving(false);
           return;
         }
 
         await whiteboardService.updateBoard(id, savedUser.id, {
           elements: elements,
         });
+
+        if (serialized) lastSavedSerializedRef.current = serialized;
 
         setTimeout(() => setIsSaving(false), 500);
       } catch (error) {
@@ -103,7 +167,7 @@ function WhiteboardPage() {
     const timeoutId = setTimeout(saveToBackend, 2000);
 
     return () => clearTimeout(timeoutId);
-  }, [excalidrawAPI, id]);
+  }, [id, lastSaved]);
 
   const handleTitleEdit = () => {
     setIsEditingTitle(true);
@@ -143,14 +207,14 @@ function WhiteboardPage() {
   };
 
   const handleExport = async (type) => {
-    if (!excalidrawAPI) return;
+    if (!excalidrawRef.current) return;
 
-    const elements = excalidrawAPI.getSceneElements();
-    const appState = excalidrawAPI.getAppState();
+    const elements = excalidrawRef.current.getSceneElements();
+    const appState = excalidrawRef.current.getAppState();
 
     try {
       if (type === "png") {
-        const blob = await excalidrawAPI.exportToBlob({
+        const blob = await excalidrawRef.current.exportToBlob({
           elements,
           appState,
           mimeType: "image/png",
@@ -162,7 +226,7 @@ function WhiteboardPage() {
         a.click();
         toast.success("Exported as PNG");
       } else if (type === "svg") {
-        const svg = await excalidrawAPI.exportToSvg({
+        const svg = await excalidrawRef.current.exportToSvg({
           elements,
           appState,
         });
@@ -185,7 +249,6 @@ function WhiteboardPage() {
 
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Toolbar */}
       <AppBar position="static" color="default" elevation={2}>
         <Toolbar>
           <IconButton
@@ -196,7 +259,6 @@ function WhiteboardPage() {
             <ArrowBackIcon />
           </IconButton>
 
-          {/* Title Section */}
           {isEditingTitle ? (
             <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
               <TextField
@@ -240,7 +302,6 @@ function WhiteboardPage() {
             </Box>
           )}
 
-          {/* Auto-save indicator */}
           {isSaving && (
             <Chip
               label="Saving..."
@@ -251,7 +312,6 @@ function WhiteboardPage() {
             />
           )}
 
-          {/* Action Buttons */}
           <Stack direction="row" spacing={1}>
             <Button
               variant="outlined"
@@ -274,7 +334,6 @@ function WhiteboardPage() {
         </Toolbar>
       </AppBar>
 
-      {/* Export Menu */}
       <Menu
         anchorEl={exportMenuAnchor}
         open={Boolean(exportMenuAnchor)}
@@ -284,7 +343,6 @@ function WhiteboardPage() {
         <MenuItem onClick={() => handleExport("svg")}>Export as SVG</MenuItem>
       </Menu>
 
-      {/* Share Dialog */}
       <Dialog
         open={shareDialogOpen}
         onClose={() => setShareDialogOpen(false)}
@@ -314,14 +372,14 @@ function WhiteboardPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Whiteboard Canvas */}
       <Box sx={{ flexGrow: 1, overflow: "hidden" }}>
         <Excalidraw
-          excalidrawAPI={(api) => setExcalidrawAPI(api)}
+          excalidrawAPI={setExcalidrawApi}
           initialData={{
             elements: [],
             appState: { viewBackgroundColor: "#ffffff" },
           }}
+          onChange={handleChange}
         />
       </Box>
     </Box>
