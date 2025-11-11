@@ -120,25 +120,32 @@ function WhiteboardPage() {
     setTempTitle(boardTitle);
   };
 
-  const handleTitleSave = () => {
+  const handleTitleSave = async () => {
     if (tempTitle.trim() === "") {
       toast.error("Title cannot be empty");
       return;
     }
 
-    setBoardTitle(tempTitle);
+    try {
+      const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+      if (!savedUser) {
+        toast.error("Please login again");
+        navigate("/login");
+        return;
+      }
 
-    // Update title in localStorage
-    const savedBoards = JSON.parse(localStorage.getItem("whiteboards") || "[]");
-    const boardIndex = savedBoards.findIndex((board) => board.id === id);
+      // Update title on backend
+      await whiteboardService.updateBoard(id, savedUser.id, {
+        title: tempTitle,
+      });
 
-    if (boardIndex !== -1) {
-      savedBoards[boardIndex].title = tempTitle;
-      localStorage.setItem("whiteboards", JSON.stringify(savedBoards));
+      setBoardTitle(tempTitle);
       toast.success("Title updated");
+      setIsEditingTitle(false);
+    } catch (error) {
+      console.error("Error updating title:", error);
+      toast.error(error.message || "Failed to update title");
     }
-
-    setIsEditingTitle(false);
   };
 
   const handleTitleCancel = () => {
