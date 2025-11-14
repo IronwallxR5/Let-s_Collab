@@ -3,6 +3,7 @@ const {
   getCollaborators,
   addCollaborator,
   removeCollaborator,
+  updateCollaboratorRole,
 } = require("../controllers/collaborators");
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.post("/board/:boardId", addCollaborator);
 
 // remove collaborator from board (owner only)
 router.delete("/:collaboratorId", removeCollaborator);
+
+// update collaborator role (owner only)
+router.patch("/:collaboratorId", updateCollaboratorRole);
 
 module.exports = router;

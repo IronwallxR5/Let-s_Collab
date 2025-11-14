@@ -233,8 +233,106 @@ const removeCollaborator = async (req, res) => {
   }
 };
 
+// update collaborator role (owner only)
+const updateCollaboratorRole = async (req, res) => {
+  try {
+    const collaboratorId = req.params.collaboratorId;
+    const { userId, role } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({ error: "userId is required" });
+    }
+
+    if (!role) {
+      return res.status(400).json({ error: "role is required" });
+    }
+
+    // validate role
+    if (!["VIEWER", "EDITOR"].includes(role)) {
+      return res.status(400).json({ 
+        error: "Invalid role. Must be VIEWER or EDITOR" 
+      });
+    }
+
+    // parse collaboratorId (format: boardId_userId)
+    const [boardId, collaboratorUserId] = collaboratorId.split("_");
+
+    if (!boardId || !collaboratorUserId) {
+      return res.status(400).json({ error: "Invalid collaborator ID format" });
+    }
+
+    // check if board exists
+    const board = await prisma.board.findUnique({
+      where: { id: boardId },
+    });
+
+    if (!board) {
+      return res.status(404).json({ error: "Board not found" });
+    }
+
+    // only owner can update collaborator roles
+    if (board.ownerId !== userId) {
+      return res.status(403).json({ 
+        error: "Only board owner can update collaborator roles" 
+      });
+    }
+
+    // check if collaborator exists
+    const collaborator = await prisma.boardCollaborator.findUnique({
+      where: {
+        boardId_userId: {
+          boardId: boardId,
+          userId: collaboratorUserId,
+        },
+      },
+    });
+
+    if (!collaborator) {
+      return res.status(404).json({ error: "Collaborator not found" });
+    }
+
+    // update collaborator role
+    const updatedCollaborator = await prisma.boardCollaborator.update({
+      where: {
+        boardId_userId: {
+          boardId: boardId,
+          userId: collaboratorUserId,
+        },
+      },
+      data: { role: role },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    const response = {
+      id: `${updatedCollaborator.boardId}_${updatedCollaborator.userId}`,
+      userId: updatedCollaborator.user.id,
+      name: updatedCollaborator.user.name,
+      email: updatedCollaborator.user.email,
+      role: updatedCollaborator.role,
+      addedAt: updatedCollaborator.addedAt,
+    };
+
+    return res.status(200).json({ 
+      message: "Collaborator role updated successfully", 
+      collaborator: response 
+    });
+  } catch (error) {
+    console.error("error:", error);
+    return res.status(500).json({ error: "Failed to update collaborator role" });
+  }
+};
+
 module.exports = {
   getCollaborators,
   addCollaborator,
   removeCollaborator,
+  updateCollaboratorRole,
 };
