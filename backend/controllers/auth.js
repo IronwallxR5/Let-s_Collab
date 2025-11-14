@@ -94,8 +94,32 @@ async function logout(req, res) {
     .json({ success: true, message: "Logged out successfully" });
 }
 
+// Google OAuth callback handler
+async function googleAuthCallback(req, res) {
+  try {
+    const user = req.user;
+    
+    if (!user) {
+      return res.redirect(`${process.env.FRONTEND_URL}/login?error=authentication_failed`);
+    }
+
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    res.cookie("token", token, getCookieOptions());
+
+    // Redirect to frontend with token
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+  } catch (err) {
+    console.error("Google auth callback error:", err);
+    res.redirect(`${process.env.FRONTEND_URL}/login?error=server_error`);
+  }
+}
+
 module.exports = {
   register,
   login,
   logout,
+  googleAuthCallback,
 };

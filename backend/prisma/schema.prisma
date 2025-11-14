@@ -11,8 +11,9 @@ datasource db {
 model User {
   id            String          @id @default(uuid())
   email         String          @unique
-  passwordHash  String
+  passwordHash  String?
   name          String
+  googleId      String?         @unique
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
@@ -22,6 +23,7 @@ model User {
   invitesReceived Invite[]      @relation("InviteReceiver")
 
   @@index([email])
+  @@index([googleId])
 }
 
 // whiteboards
