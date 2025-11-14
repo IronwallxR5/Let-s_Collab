@@ -165,12 +165,17 @@ function HomePage() {
           >
             Everything You Need to Collaborate
           </Typography>
-          <Grid container spacing={4}>
+          <Grid container spacing={4} justifyContent="center">
             {features.map((feature, index) => (
               <Grid item xs={12} sm={6} md={4} key={index}>
                 <Card
                   sx={{
-                    height: '100%',
+                    width: '100%',
+                    maxWidth: 380,
+                    height: 340,
+                    mx: 'auto',
+                    display: 'flex',
+                    flexDirection: 'column',
                     transition: 'transform 0.3s, box-shadow 0.3s',
                     '&:hover': {
                       transform: 'translateY(-8px)',
@@ -178,12 +183,54 @@ function HomePage() {
                     },
                   }}
                 >
-                  <CardContent sx={{ p: 4, textAlign: 'center' }}>
-                    <Box sx={{ mb: 2 }}>{feature.icon}</Box>
-                    <Typography variant="h5" component="h3" gutterBottom sx={{ fontWeight: 600 }}>
+                  <CardContent 
+                    sx={{ 
+                      p: 4, 
+                      textAlign: 'center',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      height: '100%',
+                    }}
+                  >
+                    <Box 
+                      sx={{ 
+                        mb: 2, 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        height: 56,
+                      }}
+                    >
+                      {feature.icon}
+                    </Box>
+                    <Typography 
+                      variant="h5" 
+                      component="h3" 
+                      sx={{ 
+                        fontWeight: 600,
+                        mb: 2,
+                        height: 32,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
                       {feature.title}
                     </Typography>
-                    <Typography variant="body1" color="text.secondary">
+                    <Typography 
+                      variant="body1" 
+                      color="text.secondary"
+                      sx={{
+                        lineHeight: 1.6,
+                        height: 76,
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                      }}
+                    >
                       {feature.description}
                     </Typography>
                   </CardContent>
