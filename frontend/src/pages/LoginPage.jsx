@@ -21,6 +21,7 @@ import {
   Email as EmailIcon,
   Lock as LockIcon,
   Person as PersonIcon,
+  Google as GoogleIcon,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
 
@@ -37,6 +38,11 @@ function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+
+  const handleGoogleSignIn = () => {
+    // Redirect to backend Google OAuth
+    window.location.href = `${API_URL}/auth/google`;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -224,6 +230,35 @@ function LoginPage() {
               </Button>
             </Stack>
           </Box>
+
+          {/* Divider */}
+          <Divider sx={{ my: 3 }}>
+            <Typography variant="body2" color="text.secondary">
+              OR
+            </Typography>
+          </Divider>
+
+          {/* Google Sign In Button */}
+          <Button
+            fullWidth
+            variant="outlined"
+            size="large"
+            startIcon={<GoogleIcon />}
+            onClick={handleGoogleSignIn}
+            sx={{
+              py: 1.5,
+              fontSize: '1rem',
+              textTransform: 'none',
+              borderColor: '#dadce0',
+              color: '#3c4043',
+              '&:hover': {
+                borderColor: '#dadce0',
+                backgroundColor: '#f8f9fa',
+              },
+            }}
+          >
+            Continue with Google
+          </Button>
 
           {/* Divider */}
           <Divider sx={{ my: 3 }}>
