@@ -3,7 +3,6 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
 export const ThemeContext = createContext(null);
-
 function ThemeContextProvider({ children }) {
   const [mode, setMode] = useState(() => {
     const savedMode = localStorage.getItem('themeMode');
