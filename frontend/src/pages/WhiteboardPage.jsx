@@ -42,6 +42,7 @@ function WhiteboardPage() {
   const applyingRemoteUpdate = useRef(false);
   const lastSerializedElementsRef = useRef("");
   const lastSavedSerializedRef = useRef("");
+  const lastChangeTimeRef = useRef(Date.now());
   const [boardTitle, setBoardTitle] = useState("Untitled Board");
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [tempTitle, setTempTitle] = useState("");
@@ -89,7 +90,7 @@ function WhiteboardPage() {
     }
   }, [boardData]);
 
-  const handleChange = (elements, appState) => {
+  const handleChange = (elements) => {
     if (!excalidrawRef.current) return;
 
     if (applyingRemoteUpdate.current) {
@@ -97,10 +98,17 @@ function WhiteboardPage() {
       return;
     }
 
+    // Throttle: Only trigger save state update if enough time has passed
+    const now = Date.now();
+    if (now - lastChangeTimeRef.current < 300) {
+      return;
+    }
+    lastChangeTimeRef.current = now;
+
     let serialized;
     try {
       serialized = JSON.stringify(elements || []);
-    } catch (e) {
+    } catch {
       serialized = null;
     }
 
@@ -119,55 +127,78 @@ function WhiteboardPage() {
         if (JSON.stringify(boardData.elements) === serialized) {
           return;
         }
-      } catch (e) {}
+      } catch {
+        // Ignore serialization errors
+      }
     }
 
     setLastSaved(Date.now());
   };
 
+  const saveToBackend = React.useCallback(async () => {
+    if (!excalidrawRef.current) return;
+
+    try {
+      setIsSaving(true);
+      const elements = excalidrawRef.current.getSceneElements();
+      let serialized;
+      try {
+        serialized = JSON.stringify(elements || []);
+      } catch {
+        serialized = null;
+      }
+
+      if (serialized && serialized === lastSavedSerializedRef.current) {
+        setIsSaving(false);
+        return;
+      }
+
+      const savedUser = JSON.parse(localStorage.getItem("user") || "null");
+      if (!savedUser) {
+        console.error("User not found");
+        setIsSaving(false);
+        return;
+      }
+
+      await whiteboardService.updateBoard(id, savedUser.id, {
+        elements: elements,
+      });
+
+      if (serialized) lastSavedSerializedRef.current = serialized;
+
+      setTimeout(() => setIsSaving(false), 500);
+    } catch (error) {
+      console.error("Error auto-saving:", error);
+      setIsSaving(false);
+    }
+  }, [id]);
+
   useEffect(() => {
     if (!excalidrawRef.current || lastSaved === 0) return;
 
-    const saveToBackend = async () => {
-      try {
-        setIsSaving(true);
+    const timeoutId = setTimeout(saveToBackend, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, [lastSaved, saveToBackend]);
+
+  // Save before unload
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      if (excalidrawRef.current && lastSaved !== 0) {
         const elements = excalidrawRef.current.getSceneElements();
-        let serialized;
-        try {
-          serialized = JSON.stringify(elements || []);
-        } catch (e) {
-          serialized = null;
+        const serialized = JSON.stringify(elements || []);
+        
+        if (serialized !== lastSavedSerializedRef.current) {
+          e.preventDefault();
+          e.returnValue = '';
+          saveToBackend();
         }
-
-        if (serialized && serialized === lastSavedSerializedRef.current) {
-          setIsSaving(false);
-          return;
-        }
-
-        const savedUser = JSON.parse(localStorage.getItem("user") || "null");
-        if (!savedUser) {
-          console.error("User not found");
-          setIsSaving(false);
-          return;
-        }
-
-        await whiteboardService.updateBoard(id, savedUser.id, {
-          elements: elements,
-        });
-
-        if (serialized) lastSavedSerializedRef.current = serialized;
-
-        setTimeout(() => setIsSaving(false), 500);
-      } catch (error) {
-        console.error("Error auto-saving:", error);
-        setIsSaving(false);
       }
     };
 
-    const timeoutId = setTimeout(saveToBackend, 2000);
-
-    return () => clearTimeout(timeoutId);
-  }, [id, lastSaved]);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [lastSaved, saveToBackend]);
 
   const handleTitleEdit = () => {
     setIsEditingTitle(true);
@@ -247,13 +278,26 @@ function WhiteboardPage() {
     setExportMenuAnchor(null);
   };
 
+  const handleBackToDashboard = async () => {
+    // Save before navigating away
+    if (excalidrawRef.current && lastSaved !== 0) {
+      const elements = excalidrawRef.current.getSceneElements();
+      const serialized = JSON.stringify(elements || []);
+      
+      if (serialized !== lastSavedSerializedRef.current) {
+        await saveToBackend();
+      }
+    }
+    navigate("/dashboard");
+  };
+
   return (
     <Box sx={{ height: "100vh", display: "flex", flexDirection: "column" }}>
       <AppBar position="static" color="default" elevation={2}>
         <Toolbar>
           <IconButton
             edge="start"
-            onClick={() => navigate("/dashboard")}
+            onClick={handleBackToDashboard}
             sx={{ mr: 2 }}
           >
             <ArrowBackIcon />
