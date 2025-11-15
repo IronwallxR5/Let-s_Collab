@@ -3,11 +3,15 @@ const boardRoutes = require("./board-routes");
 const authRoutes = require("./auth-routes");
 const collaboratorRoutes = require("./collaborator-routes");
 const inviteRoutes = require("./invite-routes");
+const userRoutes = require("./user-routes");
 
 const router = express.Router();
 
 // Auth routes
 router.use("/auth", authRoutes);
+
+// User routes
+router.use("/users", userRoutes);
 
 // Board routes
 router.use("/boards", boardRoutes);
