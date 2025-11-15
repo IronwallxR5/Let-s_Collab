@@ -11,6 +11,7 @@ import {
   Card,
   CardContent,
   Stack,
+  IconButton,
 } from '@mui/material';
 import {
   Brush as BrushIcon,
@@ -19,10 +20,14 @@ import {
   People as PeopleIcon,
   Cloud as CloudIcon,
   Devices as DevicesIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon,
 } from '@mui/icons-material';
+import { useThemeMode } from '../hooks/useThemeMode';
 
 function HomePage() {
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useThemeMode();
 
   const features = [
     {
@@ -60,7 +65,7 @@ function HomePage() {
   return (
     <Box sx={{ flexGrow: 1, bgcolor: 'background.default', minHeight: '100vh' }}>
       {/* Navigation */}
-      <AppBar position="static" color="transparent" elevation={0} sx={{ bgcolor: 'white' }}>
+      <AppBar position="static" color="transparent" elevation={0} sx={{ bgcolor: 'background.paper' }}>
         <Toolbar>
           <Typography
             variant="h5"
@@ -75,7 +80,10 @@ function HomePage() {
           >
             Let's Collab 🎨
           </Typography>
-          <Stack direction="row" spacing={2}>
+          <Stack direction="row" spacing={2} alignItems="center">
+            <IconButton onClick={toggleTheme} color="inherit">
+              {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+            </IconButton>
             <Button variant="outlined" onClick={() => navigate('/login')}>
               Login
             </Button>

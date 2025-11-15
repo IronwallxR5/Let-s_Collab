@@ -1,16 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
 import { Toaster } from 'react-hot-toast'
 import './index.css'
 import App from './App.jsx'
-import theme from './theme'
+import ThemeContextProvider from './contexts/ThemeContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
+    <ThemeContextProvider>
       <App />
       <Toaster 
         position="top-right"
@@ -34,6 +31,6 @@ createRoot(document.getElementById('root')).render(
           },
         }}
       />
-    </ThemeProvider>
+    </ThemeContextProvider>
   </StrictMode>,
 )

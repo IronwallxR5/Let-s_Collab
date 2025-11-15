@@ -34,12 +34,16 @@ import {
   Logout as LogoutIcon,
   Dashboard as DashboardIcon,
   FolderOpen as FolderOpenIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon,
 } from "@mui/icons-material";
 import toast from "react-hot-toast";
 import { whiteboardService } from "../services/index";
+import { useThemeMode } from '../hooks/useThemeMode';
 
 function DashboardPage() {
   const navigate = useNavigate();
+  const { mode, toggleTheme } = useThemeMode();
   const [whiteboards, setWhiteboards] = useState([]);
   const [filteredBoards, setFilteredBoards] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -186,6 +190,14 @@ function DashboardPage() {
           >
             Let's Collab - Dashboard
           </Typography>
+
+          <IconButton
+            color="inherit"
+            onClick={toggleTheme}
+            sx={{ mr: 1 }}
+          >
+            {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+          </IconButton>
 
           <IconButton
             color="inherit"

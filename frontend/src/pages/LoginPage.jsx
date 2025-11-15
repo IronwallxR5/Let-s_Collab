@@ -22,12 +22,16 @@ import {
   Lock as LockIcon,
   Person as PersonIcon,
   Google as GoogleIcon,
+  LightMode as LightModeIcon,
+  DarkMode as DarkModeIcon,
 } from '@mui/icons-material';
 import toast from 'react-hot-toast';
+import { useThemeMode } from '../hooks/useThemeMode';
 
 function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleTheme } = useThemeMode();
   const isSignUp = location.pathname === '/signup';
 
   const [name, setName] = useState('');
@@ -95,8 +99,26 @@ function LoginPage() {
         alignItems: 'center',
         background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
         py: 4,
+        position: 'relative',
       }}
     >
+      {/* Theme Toggle Button */}
+      <IconButton
+        onClick={toggleTheme}
+        sx={{
+          position: 'absolute',
+          top: 16,
+          right: 16,
+          color: 'white',
+          bgcolor: 'rgba(255, 255, 255, 0.1)',
+          '&:hover': {
+            bgcolor: 'rgba(255, 255, 255, 0.2)',
+          },
+        }}
+      >
+        {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+      </IconButton>
+
       <Container maxWidth="sm">
         <Paper
           elevation={24}
