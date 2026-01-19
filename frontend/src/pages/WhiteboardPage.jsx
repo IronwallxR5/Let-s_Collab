@@ -322,6 +322,10 @@ function WhiteboardPage() {
     try {
       setIsSaving(true);
       const elements = excalidrawRef.current.getSceneElements();
+      
+      console.log("💾 Attempting to save board:", id);
+      console.log("📝 Number of elements:", elements?.length || 0);
+      
       let serialized;
       try {
         serialized = JSON.stringify(elements || []);
@@ -330,30 +334,37 @@ function WhiteboardPage() {
       }
 
       if (serialized && serialized === lastSavedSerializedRef.current) {
+        console.log("⏭️ Skipping save - no changes detected");
         setIsSaving(false);
         return;
       }
 
       const savedUser = JSON.parse(localStorage.getItem("user") || "null");
       if (!savedUser) {
-        console.error("User not found");
+        console.error("❌ User not found in localStorage");
         setIsSaving(false);
         return;
       }
 
+      console.log("🖼️ Generating thumbnail...");
       // Generate thumbnail
       const thumbnail = await generateThumbnail();
+      console.log("✅ Thumbnail generated:", thumbnail ? "Yes" : "No");
 
-      await whiteboardService.updateBoard(id, savedUser.id, {
+      console.log("🚀 Calling API to update board...");
+      const response = await whiteboardService.updateBoard(id, savedUser.id, {
         elements: elements,
         thumbnail: thumbnail,
       });
+      
+      console.log("✅ Board updated successfully:", response);
 
       if (serialized) lastSavedSerializedRef.current = serialized;
 
       setTimeout(() => setIsSaving(false), 500);
     } catch (error) {
-      console.error("Error auto-saving:", error);
+      console.error("❌ Error auto-saving:", error);
+      toast.error("Failed to save changes: " + error.message);
       setIsSaving(false);
     }
   }, [id]);
