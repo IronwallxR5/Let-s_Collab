@@ -57,6 +57,7 @@ model BoardCollaborator {
 
   @@id([boardId, userId])
   @@index([userId])
+  @@index([boardId])
 }
 
 // collab invites

@@ -13,8 +13,8 @@ const router = express.Router();
 // getting all boards of a specific user (cached for 5 minutes)
 router.get("/", cacheMiddleware("boards:user", 300), getAllBoards);
 
-// getting boards by a specific id (cached for 5 minutes)
-router.get("/:id", cacheMiddleware("board:id", 300), getBoardById);
+// getting boards by a specific id (cached for 10 minutes)
+router.get("/:id", cacheMiddleware("board:id", 600), getBoardById);
 
 // delete board (owner only) - invalidate cache
 router.delete("/:id", invalidateCache(["board:id:*", "boards:user:*"]), deleteBoard);

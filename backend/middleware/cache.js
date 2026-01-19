@@ -73,11 +73,18 @@ const invalidateCache = (patterns) => {
           console.log(`[Cache Invalidation] Status: ${res.statusCode}, User: ${userId || 'none'}`);
           
           for (const pattern of patterns) {
-            // Replace placeholders with actual values from req.params/user
-            let cachePattern = pattern
-              .replace(':id', req.params?.id || '*')
-              .replace(':boardId', req.params?.boardId || '*')
-              .replace(':userId', userId || req.body?.userId || req.params?.userId || req.query?.userId || '*');
+            // Build cache pattern - handle wildcards properly
+            let cachePattern;
+            if (pattern.includes('*')) {
+              // Pattern already has wildcard, just use it
+              cachePattern = pattern;
+            } else {
+              // Replace specific placeholders
+              cachePattern = pattern
+                .replace('{id}', req.params?.id || '*')
+                .replace('{boardId}', req.params?.boardId || '*')
+                .replace('{userId}', userId || req.body?.userId || req.params?.userId || req.query?.userId || '*');
+            }
             
             await cache.delPattern(cachePattern);
             console.log(`🗑️  Cache invalidated: ${cachePattern}`);

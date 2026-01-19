@@ -59,12 +59,15 @@ function WhiteboardPage() {
       try {
         setIsLoading(true);
         const response = await whiteboardService.getBoard(id, savedUser.id);
-        const data = response.response || response;
-        setBoardTitle(data.title);
+        const data = response.response || response;        console.log("📖 Loaded board data:", {
+          id: data.id,
+          title: data.title,
+          elementsCount: Array.isArray(data.elements) ? data.elements.length : 0,
+          elements: data.elements
+        });        setBoardTitle(data.title);
         setTempTitle(data.title);
         setBoardData(data);
-        // Small delay to ensure Excalidraw is ready
-        setTimeout(() => setIsLoading(false), 300);
+        setIsLoading(false); // Remove artificial delay
       } catch (error) {
         console.error("Error loading board:", error);
         toast.error("Failed to load whiteboard");
@@ -74,123 +77,129 @@ function WhiteboardPage() {
 
     loadBoard();
 
-    // Initialize Socket.IO connection with performance optimizations
-    const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    socketRef.current = io(BACKEND_URL, {
-      withCredentials: true,
-      transports: ["websocket", "polling"], // Prefer websocket for lower latency
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionAttempts: 5,
-      timeout: 20000,
-      upgrade: true,
-      rememberUpgrade: true,
-    });
-
-    // Connection status handlers
-    socketRef.current.on("connect", () => {
-      console.log("✅ Socket.IO connected:", socketRef.current.id);
-    });
-
-    socketRef.current.on("connect_error", (error) => {
-      console.error("❌ Socket.IO connection error:", error.message);
-    });
-
-    socketRef.current.on("disconnect", (reason) => {
-      console.log("🔌 Socket.IO disconnected:", reason);
-    });
-
-    socketRef.current.on("reconnect", (attemptNumber) => {
-      console.log("🔄 Socket.IO reconnected after", attemptNumber, "attempts");
-    });
-
-    // Join the board room
-    socketRef.current.emit("join-board", {
-      boardId: id,
-      userId: savedUser.id,
-      userName: savedUser.name,
-    });
-
-    // Listen for user joined events
-    socketRef.current.on("user-joined", (data) => {
-      setActiveUsers(data.activeUsers || []);
-      if (data.userName && data.userId !== savedUser.id) {
-        toast.success(`${data.userName} joined the board`, {
-          duration: 2000,
-          icon: "👋",
-        });
-      }
-    });
-
-    // Listen for user left events
-    socketRef.current.on("user-left", (data) => {
-      setActiveUsers(data.activeUsers || []);
-      if (data.userName && data.userId !== savedUser.id) {
-        toast(`${data.userName} left the board`, {
-          duration: 2000,
-          icon: "👋",
-        });
-      }
-      // Remove cursor when user leaves
-      setCursors((prev) => {
-        const newCursors = { ...prev };
-        delete newCursors[data.socketId];
-        return newCursors;
+    // Defer Socket.IO initialization to not block initial board rendering
+    const initSocket = () => {
+      const BACKEND_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+      socketRef.current = io(BACKEND_URL, {
+        withCredentials: true,
+        transports: ["websocket", "polling"],
+        reconnection: true,
+        reconnectionDelay: 1000,
+        reconnectionAttempts: 5,
+        timeout: 20000,
+        upgrade: true,
+        rememberUpgrade: true,
       });
-    });
 
-    // Listen for element updates from other users
-    socketRef.current.on("element-update", (data) => {
-      if (data.userId !== savedUser.id && excalidrawRef.current) {
-        // Set flag before update
-        applyingRemoteUpdate.current = true;
-        
-        try {
-          excalidrawRef.current.updateScene({
-            elements: data.elements,
+      // Connection status handlers
+      socketRef.current.on("connect", () => {
+        console.log("✅ Socket.IO connected:", socketRef.current.id);
+      });
+
+      socketRef.current.on("connect_error", (error) => {
+        console.error("❌ Socket.IO connection error:", error.message);
+      });
+
+      socketRef.current.on("disconnect", (reason) => {
+        console.log("🔌 Socket.IO disconnected:", reason);
+      });
+
+      socketRef.current.on("reconnect", (attemptNumber) => {
+        console.log("🔄 Socket.IO reconnected after", attemptNumber, "attempts");
+      });
+
+      // Join the board room
+      socketRef.current.emit("join-board", {
+        boardId: id,
+        userId: savedUser.id,
+        userName: savedUser.name,
+      });
+
+      // Listen for user joined events
+      socketRef.current.on("user-joined", (data) => {
+        setActiveUsers(data.activeUsers || []);
+        if (data.userName && data.userId !== savedUser.id) {
+          toast.success(`${data.userName} joined the board`, {
+            duration: 2000,
+            icon: "👋",
           });
-        } catch (error) {
-          console.error("Error updating scene:", error);
         }
-        
-        // Clear flag after a short delay to ensure update is complete
-        setTimeout(() => {
-          applyingRemoteUpdate.current = false;
-        }, 100);
-      }
-    });
+      });
 
-    // Listen for cursor movements
-    socketRef.current.on("cursor-move", (data) => {
-      if (data.userId !== savedUser.id) {
-        setCursors((prev) => ({
-          ...prev,
-          [data.socketId]: {
-            x: data.x,
-            y: data.y,
-            userName: data.userName,
-            userId: data.userId,
-          },
-        }));
-      }
-    });
+      // Listen for user left events
+      socketRef.current.on("user-left", (data) => {
+        setActiveUsers(data.activeUsers || []);
+        if (data.userName && data.userId !== savedUser.id) {
+          toast(`${data.userName} left the board`, {
+            duration: 2000,
+            icon: "👋",
+          });
+        }
+        // Remove cursor when user leaves
+        setCursors((prev) => {
+          const newCursors = { ...prev };
+          delete newCursors[data.socketId];
+          return newCursors;
+        });
+      });
 
-    // Listen for title updates
-    socketRef.current.on("title-update", (data) => {
-      if (data.userId !== savedUser.id) {
-        setBoardTitle(data.title);
-        setTempTitle(data.title);
-      }
-    });
+      // Listen for element updates from other users
+      socketRef.current.on("element-update", (data) => {
+        if (data.userId !== savedUser.id && excalidrawRef.current) {
+          // Set flag before update
+          applyingRemoteUpdate.current = true;
+          
+          try {
+            excalidrawRef.current.updateScene({
+              elements: data.elements,
+            });
+          } catch (error) {
+            console.error("Error updating scene:", error);
+          }
+          
+          // Clear flag after a short delay to ensure update is complete
+          setTimeout(() => {
+            applyingRemoteUpdate.current = false;
+          }, 100);
+        }
+      });
 
-    // Handle socket errors
-    socketRef.current.on("error", (error) => {
-      console.error("Socket error:", error);
-      toast.error(error.message || "Connection error");
-    });
+      // Listen for cursor movements
+      socketRef.current.on("cursor-move", (data) => {
+        if (data.userId !== savedUser.id) {
+          setCursors((prev) => ({
+            ...prev,
+            [data.socketId]: {
+              x: data.x,
+              y: data.y,
+              userName: data.userName,
+              userId: data.userId,
+            },
+          }));
+        }
+      });
+
+      // Listen for title updates
+      socketRef.current.on("title-update", (data) => {
+        if (data.userId !== savedUser.id) {
+          setBoardTitle(data.title);
+          setTempTitle(data.title);
+        }
+      });
+
+      // Handle socket errors
+      socketRef.current.on("error", (error) => {
+        console.error("Socket error:", error);
+        toast.error(error.message || "Connection error");
+      });
+    };
+
+    // Initialize socket after board data starts loading to prioritize rendering
+    const socketTimeout = setTimeout(initSocket, 50);
 
     // Cleanup on unmount
     return () => {
+      clearTimeout(socketTimeout);
       if (socketEmitTimeoutRef.current) {
         clearTimeout(socketEmitTimeoutRef.current);
       }
@@ -208,6 +217,7 @@ function WhiteboardPage() {
     if (!excalidrawRef.current || !boardData) return;
 
     if (boardData.elements && Array.isArray(boardData.elements)) {
+      console.log("🎨 Applying elements to Excalidraw:", boardData.elements.length, "elements");
       applyingRemoteUpdate.current = true;
       excalidrawRef.current.updateScene({
         elements: boardData.elements,
@@ -215,6 +225,8 @@ function WhiteboardPage() {
       requestAnimationFrame(() => {
         applyingRemoteUpdate.current = false;
       });
+    } else {
+      console.warn("⚠️ No valid elements to apply:", boardData.elements);
     }
   }, [boardData]);
 

@@ -69,7 +69,14 @@ const getBoardById = async (req, res) => {
 
     const board = await prisma.board.findUnique({
       where: { id: id },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        thumbnail: true,
+        elements: true,
+        createdAt: true,
+        updatedAt: true,
+        ownerId: true,
         owner: {
           select: {
             id: true,
@@ -78,14 +85,10 @@ const getBoardById = async (req, res) => {
           },
         },
         collaborators: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
+          where: { userId: userId },
+          select: {
+            role: true,
+            userId: true,
           },
         },
       },
@@ -108,7 +111,7 @@ const getBoardById = async (req, res) => {
     // role of user who requested
     const myRole = isOwner
       ? "OWNER"
-      : board.collaborators.find((collab) => collab.userId === userId)?.role;
+      : board.collaborators[0]?.role || "VIEWER";
 
     const response = {
       id: board.id,
@@ -120,15 +123,9 @@ const getBoardById = async (req, res) => {
       isOwner: isOwner,
       owner: board.owner,
       myRole: myRole,
-      collaborators: board.collaborators.map((collab) => ({
-        userId: collab.user.id,
-        name: collab.user.name,
-        email: collab.user.email,
-        avatar: collab.user.avatar,
-        role: collab.role,
-        addedAt: collab.addedAt,
-      })),
     };
+
+    console.log(`📖 Loading board ${board.id}. Elements count: ${Array.isArray(board.elements) ? board.elements.length : 'N/A'}`);
 
     return res.status(200).json({ response });
   } catch (error) {
@@ -243,13 +240,18 @@ const updateBoard = async (req, res) => {
     let updateData = {};
     if (title !== undefined) updateData.title = title;
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
-    if (elements !== undefined) updateData.elements = elements;
+    if (elements !== undefined) {
+      console.log(`📝 Updating board ${id} with ${Array.isArray(elements) ? elements.length : 0} elements`);
+      updateData.elements = elements;
+    }
 
     const updatedBoard = await prisma.board.update({
       where: { id: id },
       data: updateData,
     });
 
+    console.log(`✅ Board ${id} updated successfully. Elements count: ${Array.isArray(updatedBoard.elements) ? updatedBoard.elements.length : 'N/A'}`);
+    
     return res.status(200).json({ message: "Board updated successfully", updatedBoard });
   } catch (error) {
     console.error("error:", error);
