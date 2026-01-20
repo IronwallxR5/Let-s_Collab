@@ -98,7 +98,7 @@ export function ProfileDropdown({ user, onLogout, onUserUpdate, anchor, onClose 
 
   return (
     <div 
-      className="fixed inset-0 z-50 bg-transparent" 
+      className="fixed inset-0 z-[60] bg-transparent" 
       onClick={(e) => {
         e.stopPropagation();
         onClose();

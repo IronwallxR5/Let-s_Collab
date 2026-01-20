@@ -624,7 +624,7 @@ function WhiteboardPage() {
               </button>
 
               {Boolean(exportMenuAnchor) && (
-                <div className="fixed inset-0 z-50" onClick={() => setExportMenuAnchor(null)}>
+                <div className="fixed inset-0 z-[60]" onClick={() => setExportMenuAnchor(null)}>
                   <div
                     className="absolute bg-card border border-border rounded-xl shadow-xl w-48 py-1 animate-in fade-in zoom-in-95 duration-100"
                     style={{
@@ -708,7 +708,7 @@ function WhiteboardPage() {
       </div>
 
       {/* Remote cursors overlay */}
-      <div className="pointer-events-none fixed inset-0 z-50">
+      <div className="pointer-events-none fixed inset-0 z-40">
         {Object.entries(cursors).map(([socketId, cursor]) => (
           <div
             key={socketId}
