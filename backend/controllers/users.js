@@ -2,23 +2,15 @@ const jwt = require("jsonwebtoken");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-function getUserFromToken(token) {
-  if (!token) return null;
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    return decoded;
-  } catch (err) {
-    return null;
-  }
-}
-
 async function getCurrentUser(req, res) {
   try {
-    const token = req.cookies.token;
-    const decoded = getUserFromToken(token);
-
-    if (!decoded) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const token = req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
 
     const user = await prisma.user.findUnique({
@@ -47,17 +39,16 @@ async function getCurrentUser(req, res) {
 
 async function updateProfile(req, res) {
   try {
-    const token = req.cookies.token;
-    const decoded = getUserFromToken(token);
-
-    if (!decoded) {
-      return res.status(401).json({ error: "Unauthorized" });
+    const token = req.cookies.token || req.headers.authorization?.replace("Bearer ", "");
+    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: "Invalid or expired token" });
     }
 
     const { name, username, email } = req.body;
-
-    // Debug logging
-    console.log("📝 Update Profile Request:", { name, username, email });
 
     // Check if at least one field is being updated
     if (name === undefined && username === undefined && email === undefined) {
@@ -140,8 +131,6 @@ async function updateProfile(req, res) {
       updateData.email = emailValue;
     }
 
-    console.log("✅ Updating user with data:", updateData);
-
     const user = await prisma.user.update({
       where: { id: decoded.id },
       data: updateData,
@@ -155,8 +144,6 @@ async function updateProfile(req, res) {
         updatedAt: true,
       },
     });
-
-    console.log("✅ User updated successfully:", user.username || user.email);
 
     res.json({ success: true, user, message: "Profile updated successfully" });
   } catch (err) {

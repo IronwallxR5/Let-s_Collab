@@ -125,8 +125,6 @@ const getBoardById = async (req, res) => {
       myRole: myRole,
     };
 
-    console.log(`📖 Loading board ${board.id}. Elements count: ${Array.isArray(board.elements) ? board.elements.length : 'N/A'}`);
-
     return res.status(200).json({ response });
   } catch (error) {
     console.error("error:", error);
@@ -240,18 +238,13 @@ const updateBoard = async (req, res) => {
     let updateData = {};
     if (title !== undefined) updateData.title = title;
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail;
-    if (elements !== undefined) {
-      console.log(`📝 Updating board ${id} with ${Array.isArray(elements) ? elements.length : 0} elements`);
-      updateData.elements = elements;
-    }
+    if (elements !== undefined) updateData.elements = elements;
 
     const updatedBoard = await prisma.board.update({
       where: { id: id },
       data: updateData,
     });
 
-    console.log(`✅ Board ${id} updated successfully. Elements count: ${Array.isArray(updatedBoard.elements) ? updatedBoard.elements.length : 'N/A'}`);
-    
     return res.status(200).json({ message: "Board updated successfully", updatedBoard });
   } catch (error) {
     console.error("error:", error);

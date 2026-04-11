@@ -28,8 +28,6 @@ function AuthCallbackPage() {
       return;
     }
 
-    // Store token in localStorage
-    localStorage.setItem('token', token);
 
     // Fetch user data with the token
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';

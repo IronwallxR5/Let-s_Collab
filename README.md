@@ -17,14 +17,14 @@ Perfect for remote teams, classrooms, designers, and anyone who needs a shared v
 
 ### 🔐 Authentication & User Management
 - Email/password and OAuth (Google) authentication
-- JWT-based secure sessions
-- User profiles with customizable avatars
+- JWT-based secure sessions with HTTP-only cookies
+- Inline profile editing (name, username, email)
 
 ### 📊 Whiteboard Management
 - Create unlimited whiteboards
 - Rename, delete, and organize boards
-- Dashboard with board previews
-- Quick search and filtering
+- Dashboard with board previews and thumbnails
+- Search and sort (by name, created date, last updated)
 
 ### 🤝 Real-time Collaboration
 - **Live sync** across all collaborators using Socket.IO
@@ -39,35 +39,35 @@ Perfect for remote teams, classrooms, designers, and anyone who needs a shared v
 - Color picker with custom palettes
 - Undo/redo support
 - Zoom and pan controls
-- Export to PNG and SVG formats
+- Export to PNG and SVG (via Excalidraw's built-in export)
 
 ### 💾 Data Persistence
-- Auto-save functionality
-- Real-time synchronization
-- Conflict resolution for simultaneous edits
-- Persistent storage with MySQL
+- Auto-save on every Excalidraw change event
+- Real-time synchronization via WebSockets
+- Persistent storage with **PostgreSQL** via Prisma ORM
+- Optional Redis caching for faster board and user lookups
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **React** (v18) with **Vite** - Fast, modern development
-- **Excalidraw** - Professional whiteboard canvas
-- **Zustand** - Lightweight state management
-- **TailwindCSS** & **Shadcn/ui** - Modern, responsive design
-- **Socket.IO Client** - Real-time communication
+- **React** (v19) with **Vite** — Fast, modern development
+- **Excalidraw** — Professional whiteboard canvas
+- **Zustand** — Lightweight state management
+- **TailwindCSS** — Utility-first styling
+- **Socket.IO Client** — Real-time communication
+- **react-hot-toast** — Notifications
 
 ### Backend
-- **Node.js** with **Express.js** - RESTful API
-- **MySQL** with **Prisma ORM** - Type-safe database access
-- **Socket.IO** - WebSocket-based real-time sync
-- **Passport.js** - Authentication strategies
-- **JWT** - Secure token-based auth
-- **Redis** - Optional in-memory caching for 10-100x faster response times
+- **Node.js** with **Express.js** (v5) — RESTful API
+- **PostgreSQL** with **Prisma ORM** — Type-safe database access
+- **Socket.IO** — WebSocket-based real-time sync
+- **Passport.js** — Google OAuth 2.0 strategy
+- **JWT** — Secure token-based auth
+- **Redis** *(optional)* — In-memory caching for faster API responses
 
 ### Infrastructure
-- **Vercel** - Frontend hosting
-- **Railway** - Backend and database hosting
-- **GitHub Actions** - CI/CD pipelines
+- **Vercel** — Frontend hosting
+- **Render** — Backend and database hosting
 
 ## 🚀 Quick Start
 
@@ -116,25 +116,68 @@ See live cursors and invite team members with different permission levels.
 ```
 Let-s_Collab/
 ├── backend/              # Node.js + Express API
-│   ├── config/          # Configuration files
-│   ├── controllers/     # Route controllers
-│   ├── middleware/      # Custom middleware
-│   ├── prisma/          # Database schema & migrations
-│   ├── routes/          # API routes
-│   └── utils/           # Helper functions
+│   ├── config/          # Passport, Redis, and server configuration
+│   ├── controllers/     # Route handlers (auth, boards, collaborators, invites, socket, users)
+│   ├── middleware/      # Auth, cache, and validation middleware
+│   ├── prisma/          # Database schema & migrations (PostgreSQL)
+│   ├── routes/          # API route definitions
+│   └── utils/           # Shared helper utilities
 ├── frontend/            # React + Vite app
 │   ├── src/
-│   │   ├── components/  # Reusable UI components
-│   │   ├── contexts/    # React contexts
-│   │   ├── features/    # Feature modules
-│   │   ├── pages/       # Route pages
-│   │   ├── services/    # API services
-│   │   └── store/       # State management
+│   │   ├── components/  # Reusable UI components (ShareScreen, InviteBox, ProfileDropdown, etc.)
+│   │   ├── constants/   # App-wide constants (routes, roles, storage keys)
+│   │   ├── contexts/    # Theme context
+│   │   ├── hooks/       # Custom React hooks
+│   │   ├── lib/         # Utility functions (cn, date formatting, etc.)
+│   │   ├── pages/       # Route pages (Home, Login, Dashboard, Whiteboard, AuthCallback)
+│   │   ├── services/    # API service layer (whiteboardService, inviteService)
+│   │   └── store/       # Zustand state (authStore)
 │   └── public/          # Static assets
 ├── SETUP.md             # Setup instructions
 ├── CONTRIBUTING.md      # Contribution guidelines
 └── README.md            # This file
 ```
+
+## 🗄️ Database Schema
+
+The app uses **PostgreSQL** managed via Prisma ORM. Key models:
+
+- **User** — Authentication, profile, Google OAuth linking
+- **Board** — Whiteboard title, thumbnail, Excalidraw elements (JSON), owner
+- **BoardCollaborator** — M:M join table with role (`VIEWER` | `EDITOR`)
+- **Invite** — Pending/accepted/declined invitations linked to boards
+
+Run migrations with:
+
+```bash
+cd backend
+npx prisma migrate dev       # development
+npx prisma migrate deploy    # production
+```
+
+## 🔌 API Overview
+
+| Resource | Endpoint | Description |
+|----------|----------|-------------|
+| Auth | `POST /auth/register` | Register with email/password |
+| Auth | `POST /auth/login` | Login and receive JWT cookie |
+| Auth | `GET /auth/google` | Initiate Google OAuth flow |
+| Users | `GET /users/me` | Get current authenticated user |
+| Users | `PATCH /users/me` | Update profile (name, username, email) |
+| Boards | `GET /boards` | List all boards for a user |
+| Boards | `POST /boards` | Create a new board |
+| Boards | `GET /boards/:id` | Get a single board |
+| Boards | `PATCH /boards/:id` | Update board (title, thumbnail, elements) |
+| Boards | `DELETE /boards/:id` | Delete a board (owner only) |
+| Collaborators | `GET /collaborators/board/:boardId` | List collaborators |
+| Collaborators | `POST /collaborators/board/:boardId` | Add collaborator by email |
+| Collaborators | `DELETE /collaborators/:collaboratorId` | Remove collaborator |
+| Collaborators | `PATCH /collaborators/:collaboratorId` | Update collaborator role |
+| Invites | `POST /invites/board/:boardId` | Send invite (by email or username) |
+| Invites | `GET /invites/pending` | Get pending invites for current user |
+| Invites | `PATCH /invites/:id/accept` | Accept an invite |
+| Invites | `PATCH /invites/:id/decline` | Decline an invite |
+| Invites | `DELETE /invites/:id` | Cancel an invite (owner only) |
 
 ## 🤝 Contributing
 

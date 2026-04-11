@@ -11,17 +11,12 @@
   },
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.0",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "framer-motion": "^12.23.25",
     "lucide-react": "^0.548.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.9.4",
     "socket.io-client": "^4.8.1",
-    "tailwind-merge": "^3.4.0",
-    "tailwindcss-animate": "^1.0.7",
     "zustand": "^5.0.8"
   },
   "devDependencies": {
