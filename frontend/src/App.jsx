@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { ProtectedRoute } from './components';
+import { ProtectedRoute, ColdStartPopup } from './components';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
@@ -10,6 +10,7 @@ import WhiteboardPage from './pages/WhiteboardPage';
 function App() {
   return (
     <BrowserRouter>
+      <ColdStartPopup />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/login" element={<LoginPage />} />

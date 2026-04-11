@@ -1,5 +1,6 @@
 // Common Components
 export { default as ProtectedRoute } from "./common/ProtectedRoute";
+export { default as ColdStartPopup } from "./common/ColdStartPopup";
 
 // UI Components
 export { default as LoadingSpinner } from "./ui/LoadingSpinner";
